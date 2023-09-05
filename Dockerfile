@@ -1,4 +1,7 @@
-# qBittorrent, OpenVPN and WireGuard, qbittorrentvpn
+# gderf/qbittorrentvpn-4.5.5
+# Docker container which runs the latest qBittorrent-nox client while connecting to WireGuard or OpenVPN with iptables killswitch to prevent IP leakage when the tunnel goes down.
+
+# qBittorrent v4.5.5, OpenVPN and WireGuard, qbittorrentvpn
 FROM debian:bullseye-slim
 
 WORKDIR /opt
@@ -192,7 +195,7 @@ RUN echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.li
     /tmp/* \
     /var/tmp/*
 
-# Install (un)compressing tools like unrar, 7z, unzip and zip
+# Install (un)compressing tools like unrar, 7z, unzip and zip, curl, wget, and nano
 RUN echo "deb http://deb.debian.org/debian/ bullseye non-free" > /etc/apt/sources.list.d/non-free-unrar.list \
     && printf 'Package: *\nPin: release a=non-free\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-non-free \
     && apt update \
@@ -202,6 +205,9 @@ RUN echo "deb http://deb.debian.org/debian/ bullseye non-free" > /etc/apt/source
     p7zip-full \
     unzip \
     zip \
+    curl\
+    wget\
+    nano\
     && apt-get clean \
     && apt --purge autoremove -y \
     && rm -rf \
@@ -216,10 +222,14 @@ VOLUME /config /downloads
 
 ADD openvpn/ /etc/openvpn/
 ADD qbittorrent/ /etc/qbittorrent/
+ADD root/ /root/
+ADD speedtest/ /usr/bin/
 
 RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh
+RUN chmod +x /usr/bin/speedtest
 
 EXPOSE 8080
 EXPOSE 8999
 EXPOSE 8999/udp
 CMD ["/bin/bash", "/etc/openvpn/start.sh"]
+
