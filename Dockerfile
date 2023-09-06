@@ -223,7 +223,7 @@ VOLUME /config /downloads
 ADD openvpn/ /etc/openvpn/
 ADD qbittorrent/ /etc/qbittorrent/
 ADD speedtest/ /usr/bin/
-
+ADD bashrc/ /root/
 RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh
 RUN chmod +x /usr/bin/speedtest
 
