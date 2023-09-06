@@ -1,7 +1,5 @@
-# gderf/qbittorrentvpn-4.5.5
-# Docker container which runs the latest qBittorrent-nox client while connecting to WireGuard or OpenVPN with iptables killswitch to prevent IP leakage when the tunnel goes down.
-
-# qBittorrent v4.5.5, OpenVPN and WireGuard, qbittorrentvpn
+# Latest release Qbittorrent, OpenVPN and WireGuard
+# Forked from DyonR/docker-qbittorrentvpn
 FROM debian:bullseye-slim
 
 WORKDIR /opt
@@ -222,8 +220,9 @@ VOLUME /config /downloads
 
 ADD openvpn/ /etc/openvpn/
 ADD qbittorrent/ /etc/qbittorrent/
-ADD speedtest/ /usr/bin/
 ADD bashrc/ /root/
+ADD speedtest/ /usr/bin/
+
 RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh
 RUN chmod +x /usr/bin/speedtest
 
@@ -231,4 +230,3 @@ EXPOSE 8080
 EXPOSE 8999
 EXPOSE 8999/udp
 CMD ["/bin/bash", "/etc/openvpn/start.sh"]
-
