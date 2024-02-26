@@ -7,7 +7,7 @@ WORKDIR /opt
 RUN usermod -u 99 nobody
 
 # Make directories
-RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent
+RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent /config/scripts
 
 # Install boost
 RUN apt update \
