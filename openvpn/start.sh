@@ -57,6 +57,12 @@ if [[ $VPN_ENABLED == "1" || $VPN_ENABLED == "true" || $VPN_ENABLED == "yes" ]];
 	if (( ${exit_code_chown} != 0 || ${exit_code_chmod} != 0 )); then
 		echo "[WARNING] Unable to chown/chmod /config/${VPN_TYPE}/, assuming SMB mountpoint" | ts '%Y-%m-%d %H:%M:%.S'
 	fi
+	if [[ ! -z "${VPN_CONF_SWITCH}" && "${VPN_CONF_SWITCH,,}" != "0" && "${VPN_CONF_SWITCH,,}" != "false" && "${VPN_CONF_SWITCH,,}" != "no" ]]; then
+		mkdir -p "/config/${VPN_TYPE}_confs"
+		chown -R "${PUID}":"${PGID}" "/config/${VPN_TYPE}_confs" &> /dev/null
+		chmod -R 775 "/config/${VPN_TYPE}_confs" &> /dev/null
+	fi
+
 
 	# Wildcard search for openvpn config files (match on first result)
 	if [[ "${VPN_TYPE}" == "openvpn" ]]; then
