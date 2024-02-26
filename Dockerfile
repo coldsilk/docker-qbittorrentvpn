@@ -222,9 +222,11 @@ ADD openvpn/ /etc/openvpn/
 ADD qbittorrent/ /etc/qbittorrent/
 ADD bashrc/ /root/
 ADD speedtest/ /usr/bin/
+ADD scripts/ /config/scripts/
 
 RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh
 RUN chmod +x /usr/bin/speedtest
+RUN chmod +x /config/scripts/*.bash /config/scripts/*.sh
 
 EXPOSE 8080
 EXPOSE 8999
