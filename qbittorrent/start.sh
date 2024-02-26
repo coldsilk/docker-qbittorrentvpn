@@ -165,8 +165,8 @@ if [ -e /proc/$qbittorrentpid ]; then
 		ping -c ${HEALTH_CHECK_AMOUNT} $HOST > /dev/null 2>&1
 		STATUS=$?
 		if [[ "${STATUS}" -ne 0 ]]; then
-  			if [[ ! -z "${VPN_CONF_SWITCH}" && -f "/config/scripts/vpn_conf_switch.bash" && "${VPN_CONF_SWITCH,,}" != "0" && "${VPN_CONF_SWITCH,,}" != "false" && "${VPN_CONF_SWITCH,,}" != "no" ]]; then
-			        /config/scripts/vpn_conf_switch.bash "${VPN_TYPE}"
+  			if [[ ! -z "${VPN_CONF_SWITCH}" && -f "/scripts/vpn_conf_switch.sh" && "${VPN_CONF_SWITCH,,}" != "0" && "${VPN_CONF_SWITCH,,}" != "false" && "${VPN_CONF_SWITCH,,}" != "no" ]]; then
+			        /scripts/vpn_conf_switch.sh "${VPN_TYPE}"
 			fi
 			if [[ ! -z "${VPN_DOWN_SCRIPT}" && -f "/config/vpn_down.sh" && "${VPN_DOWN_SCRIPT,,}" != "0" && "${VPN_DOWN_SCRIPT,,}" != "false" && "${VPN_DOWN_SCRIPT,,}" != "no" ]]; then
 			        /config/vpn_down.sh
