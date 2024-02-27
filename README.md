@@ -129,7 +129,7 @@ User ID (PUID) and Group ID (PGID) can be found by issuing the following command
 id <username>
 ```
 # How to use VPN_DOWN_FILE, VPN_UP_FILE, VPN_UP_SCRIPT and VPN_CONF_SWITCH
-For VPN_DOWN_SCRIPT and VPN_UP_SCRIPT, put the scripts in the "/config" directory. They must be named `"vpn_down.sh"` and `"vpn_up.sh"`.
+For VPN_DOWN_SCRIPT and VPN_UP_SCRIPT, put the scripts in the "/config" directory. They must be named `"vpn_down.sh"` and `"vpn_up.sh"`. You must make the scripts executable yourself, eg. `chmod +x vpn_down.sh`
 ** Note: for the `"vpn_up.sh"` script, it's worth remembering that it will be ran every successful health check. So if you run a health check every 60 seconds, after 1 hour it has been ran 60 times.
 
 VPN_DOWN_FILE A lazy way to make the VPN state observable without using VPN_DOWN_SCRIPT. The file will be written to `"/config/vpn_down"`, no file extension. It will be delete after a successful connection. Its contents is a timestamp in the form of: `%Y-%m-%d %H:%M:%.S seconds_since_epoch`
