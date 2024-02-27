@@ -69,6 +69,10 @@ $ docker run  -d \
 |`RESTART_CONTAINER`| No |Set to `no` to **disable** the automatic restart when the network is possibly down.|`RESTART_CONTAINER=yes`|`yes`|
 |`INSTALL_PYTHON3`| No |Set this to `yes` to let the container install Python3.|`INSTALL_PYTHON3=yes`|`no`|
 |`ADDITIONAL_PORTS`| No |Adding a comma delimited list of ports will allow these ports via the iptables script.|`ADDITIONAL_PORTS=1234,8112`||
+|`VPN_DOWN_FILE` | No | On health check failure, writes "/config/vpn_down" | VPN_DOWN_FILE=yes | no
+|`VPN_DOWN_SCRIPT` | No | On health check failure, run "/config/vpn_down.sh" | VPN_DOWN_SCRIPT=yes |
+|`VPN_UP_SCRIPT` | No | On health check success, run "/confing/vpn_up.sh" | VPN_UP_SCRIPT=yes | no
+|`VPN_CONF_SWITCH` | No | On healtch check failure, run bundled conf switch script (read below) | VPN_CONF_SWITCH=yes | no
 
 ## Volumes
 | Volume | Required | Function | Example |
@@ -124,6 +128,13 @@ User ID (PUID) and Group ID (PGID) can be found by issuing the following command
 ```
 id <username>
 ```
+# How to use VPN_DOWN_FILE, VPN_UP_FILE, VPN_UP_SCRIPT and VPN_CONF_SWITCH
+For VPN_DOWN_SCRIPT and VPN_UP_SCRIPT, put the scripts in the "/config" directory. They must be named `"vpn_down.sh"` and `"vpn_up.sh"`.
+** Note: for the `"vpn_up.sh"` script, it's worth remembering that it will be ran every successful health check. So if you run a health check every 60 seconds, after 1 hour it has been ran 60 times.
+
+VPN_DOWN_FILE A lazy way to make the VPN state observable without using VPN_DOWN_SCRIPT. The file will be written to `"/config/vpn_down"`, no file extension. It will be delete after a successful connection. Its contents is a timestamp in the form of: `%Y-%m-%d %H:%M:%.S seconds_since_epoch`
+
+VPN_CONF_SWITCH On health check failure, this will overwrite the current VPN conf file with the oldest one (by modified time) located in `"/config/openvpn_confs"` or `"/config/wireguard_confs"`. For `openvpn`, the file name to overwrite (the one in `"/config/openvpn/"`) must be named `default.ovpn` as that is what the copy operation does. ie. `cp` `-f` `"/config/openvpn_confs/random.ovpn"` `"/config/openvpn/default.ovpn"`. It then uses `touch` to update the modification time for `"random.ovpn"`. As usual, the wireguard file will be copied as `"wg0.conf"`.
 
 # Issues
 If you are having issues with this container please submit an issue on GitHub.  
