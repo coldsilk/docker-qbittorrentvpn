@@ -181,7 +181,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 				exit 1
 			fi
 		else
-			if [[ ! -z "${VPN_UP_SCRIPT}" && -f "/config/vpn_down.sh" && "${VPN_UP_SCRIPT,,}" != "0" && "${VPN_UP_SCRIPT,,}" != "false" && "${VPN_UP_SCRIPT,,}" != "no" ]]; then
+			if [[ ! -z "${VPN_UP_SCRIPT}" && -f "/config/vpn_up.sh" && "${VPN_UP_SCRIPT,,}" != "0" && "${VPN_UP_SCRIPT,,}" != "false" && "${VPN_UP_SCRIPT,,}" != "no" ]]; then
 			        /config/vpn_up.sh
 			fi
 			if [[ ! -z ${VPN_DOWN_FILE} && "${VPN_DOWN_FILE,,}" != "0" && "${VPN_DOWN_FILE,,}" != "false" && "${VPN_DOWN_FILE,,}" != "no" ]]; then
