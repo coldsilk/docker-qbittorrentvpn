@@ -70,7 +70,7 @@ $ docker run  -d \
 |`INSTALL_PYTHON3`| No |Set this to `yes` to let the container install Python3.|`INSTALL_PYTHON3=yes`|`no`|
 |`ADDITIONAL_PORTS`| No |Adding a comma delimited list of ports will allow these ports via the iptables script.|`ADDITIONAL_PORTS=1234,8112`||
 |`VPN_DOWN_FILE` | No | On health check failure, writes "/config/vpn_down" | VPN_DOWN_FILE=yes | no
-|`VPN_DOWN_SCRIPT` | No | On health check failure, run "/config/vpn_down.sh" | VPN_DOWN_SCRIPT=yes |
+|`VPN_DOWN_SCRIPT` | No | On health check failure, run "/config/vpn_down.sh" | VPN_DOWN_SCRIPT=yes | no
 |`VPN_UP_SCRIPT` | No | On health check success, run "/confing/vpn_up.sh" | VPN_UP_SCRIPT=yes | no
 |`VPN_CONF_SWITCH` | No | On healtch check failure, run bundled conf switch script (read below) | VPN_CONF_SWITCH=yes | no
 
