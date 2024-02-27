@@ -72,7 +72,7 @@ $ docker run  -d \
 |`VPN_DOWN_FILE` | No | On health check failure, writes "/config/vpn_down" | VPN_DOWN_FILE=yes | no
 |`VPN_DOWN_SCRIPT` | No | On health check failure, run "/config/vpn_down.sh" | VPN_DOWN_SCRIPT=yes | no
 |`VPN_UP_SCRIPT` | No | On health check success, run "/confing/vpn_up.sh" | VPN_UP_SCRIPT=yes | no
-|`VPN_CONF_SWITCH` | No | On healtch check failure, run bundled conf switch script (read below) | VPN_CONF_SWITCH=yes | no
+|`VPN_CONF_SWITCH` | No | On health check failure, run bundled conf switch script (read below) | VPN_CONF_SWITCH=yes | no
 
 ## Volumes
 | Volume | Required | Function | Example |
@@ -134,7 +134,7 @@ For VPN_DOWN_SCRIPT and VPN_UP_SCRIPT, put the scripts in the "/config" director
 
 VPN_DOWN_FILE A lazy way to make the VPN state observable without using VPN_DOWN_SCRIPT. The file will be written to `"/config/vpn_down"`, no file extension. It will be delete after a successful connection. Its contents is a timestamp in the form of: `%Y-%m-%d %H:%M:%.S seconds_since_epoch`
 
-VPN_CONF_SWITCH On health check failure, this will overwrite the current VPN conf file with the oldest one (by modified time) located in `"/config/openvpn_confs"` or `"/config/wireguard_confs"`. For `openvpn`, the file name to overwrite (the one in `"/config/openvpn/"`) must be named `default.ovpn` as that is what the copy operation does. ie. `cp` `-f` `"/config/openvpn_confs/random.ovpn"` `"/config/openvpn/default.ovpn"`. It then uses `touch` to update the modification time for `"random.ovpn"`. As usual, the wireguard file will be copied as `"wg0.conf"`.
+VPN_CONF_SWITCH On health check failure, this will overwrite the current VPN conf file with the oldest one (by modified time) located in `"/config/openvpn_confs"` or `"/config/wireguard_confs"`. For `openvpn`, the file name to overwrite (the one in `"/config/openvpn/"`) must be named `default.ovpn` as that is what the copy operation does. ie. `cp` `-f` `"/config/openvpn_confs/random.ovpn"` `"/config/openvpn/default.ovpn"`. It then uses `touch` to update the modification time for `"random.ovpn"`. As usual, the wireguard file will be copied as `"wg0.conf"`. The script that is ran is located in the image at `"/scripts/vpn_conf_switch.sh"`.
 
 # Issues
 If you are having issues with this container please submit an issue on GitHub.  
