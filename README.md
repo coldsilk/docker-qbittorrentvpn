@@ -128,13 +128,14 @@ User ID (PUID) and Group ID (PGID) can be found by issuing the following command
 ```
 id <username>
 ```
-# How to use VPN_DOWN_FILE, VPN_UP_FILE, VPN_UP_SCRIPT and VPN_CONF_SWITCH
-For VPN_DOWN_SCRIPT and VPN_UP_SCRIPT, put the scripts in the "/config" directory. They must be named `"vpn_down.sh"` and `"vpn_up.sh"`. You must make the scripts executable yourself, eg. `chmod +x vpn_down.sh`
-** Note: for the `"vpn_up.sh"` script, it's worth remembering that it will be ran every successful health check. So if you run a health check every 60 seconds, after 1 hour it has been ran 60 times.
+# VPN_DOWN_SCRIPT and VPN_UP_SCRIPT
+Put `"vpn_down.sh"` and/or `"vpn_up.sh"` in the `"/config"` directory. You must make the scripts executable yourself, eg. `chmod` `+x` `"/config/vpn_down.sh"`. `"/config/vpn_down.sh"` runs every health check failure and `"/config/vpn_up.sh"` runs every health check success.
 
-VPN_DOWN_FILE A lazy way to make the VPN state observable without using VPN_DOWN_SCRIPT. The file will be written to `"/config/vpn_down"`, no file extension. It will be delete after a successful connection. Its contents is a timestamp in the form of: `%Y-%m-%d %H:%M:%.S seconds_since_epoch`
+# VPN_DOWN_FILE
+On health check failure, writes the file `"/config/vpn_down"`, no file extension. It will be deleted after a successful connection. It contains a timestamp in the form of: `%Y-%m-%d %H:%M:%.S seconds_since_epoch`
 
-VPN_CONF_SWITCH On health check failure, this will overwrite the current VPN conf file with the oldest one (by modified time) located in `"/config/openvpn_confs"` or `"/config/wireguard_confs"`. For `openvpn`, the file name to overwrite must be `default.ovpn`, eg. `"/config/openvpn/default.ovpn"`, as that is what the copy operation does. ie. `cp` `-f` `"/config/openvpn_confs/random.ovpn"` `"/config/openvpn/default.ovpn"`. It should also be the only .ovpn file in `"/config/openvpn"` (or for wireguard, `"/config/wireguard"`). Finally it then uses `touch` to update the modification time for `"random.ovpn"`. As usual, the wireguard file will be copied as `"wg0.conf"`. The script that is ran is located in the image at `"/scripts/vpn_conf_switch.sh"`.
+# VPN_CONF_SWITCH
+Name your openvpn file `"default.ovpn"` or wireguard file `"wg0.conf"`. For openvpn, put this 1 file in "/config/openvpn/", for wireguard "/config/wireguard/". Put all extra vpn confs in `"/config/openvpn_confs", for wireguard `"/config/wireguard_confs"`. On health check failure, this happens: `cp` `-f` `"/config/openvpn_confs/a_random.ovpn"` `"/config/openvpn/default.ovpn"`. The script that is ran is located in the container at "/scripts/vpn_conf_switch.sh".
 
 # Issues
 If you are having issues with this container please submit an issue on GitHub.  
