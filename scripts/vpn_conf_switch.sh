@@ -11,14 +11,15 @@ function vpn_conf_switch() (
     CONFIG_DIR="/config"
      CONFS_DIR="$CONFIG_DIR/${VPN_TYPE}_confs"
   CONFS_FILTER='ls -tp1 "$CONFS_DIR" | grep -v /' # eval'd
+            ME=$(basename "$0")
 
   if [ ! -d "$CONFS_DIR" ]; then
-    echo "[ERROR] VPN confs directory doesn't exist: \"$CONFS_DIR\"" | ts '%Y-%m-%d %H:%M:%.S'
+    echo "[ERROR] $ME: VPN confs directory doesn't exist: \"$CONFS_DIR\"" | ts '%Y-%m-%d %H:%M:%.S'
     return 1
   fi
 
   if [ "$VPN_TYPE" != "openvpn" ] && [ "$VPN_TYPE" != "wireguard" ]; then
-    echo "[ERROR] VPN_TYPE is not \"openvpn\" or \"wireguard\": \"$VPN_TYPE\"" | ts '%Y-%m-%d %H:%M:%.S'
+    echo "[ERROR] $ME: VPN_TYPE is not \"openvpn\" or \"wireguard\": \"$VPN_TYPE\"" | ts '%Y-%m-%d %H:%M:%.S'
     return 2
   fi
 
@@ -29,7 +30,7 @@ function vpn_conf_switch() (
   done < <(eval "$CONFS_FILTER");
 
   if [ ! -f "$CONFS_DIR/$next_vpn_conf" ]; then
-    echo "[ERROR] confs directory seems to have no files: \"$CONFS_DIR\"" | ts '%Y-%m-%d %H:%M:%.S'
+    echo "[ERROR] $ME: confs directory seems to have no files: \"$CONFS_DIR\"" | ts '%Y-%m-%d %H:%M:%.S'
     return 3
   fi
 
@@ -37,7 +38,7 @@ function vpn_conf_switch() (
   if [ "$VPN_TYPE" == "wireguard" ]; then
     vpn_file="wg0.conf";
   fi
-  echo "[INFO] copying VPN file \"$CONFS_DIR/$next_vpn_conf\" to \"$CONFIG_DIR/$VPN_TYPE/$vpn_file\"" | ts '%Y-%m-%d %H:%M:%.S'
+  echo "[INFO] $ME: copying VPN file \"$CONFS_DIR/$next_vpn_conf\" to \"$CONFIG_DIR/$VPN_TYPE/$vpn_file\"" | ts '%Y-%m-%d %H:%M:%.S'
   cp -f "$CONFS_DIR/$next_vpn_conf" "$CONFIG_DIR/$VPN_TYPE/$vpn_file"
   touch "$CONFS_DIR/$next_vpn_conf"
   return 0
