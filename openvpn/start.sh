@@ -262,21 +262,8 @@ if [[ -z "${PGID}" ]]; then
 fi
 
 if [[ $VPN_ENABLED == "1" || $VPN_ENABLED == "true" || $VPN_ENABLED == "yes" ]]; then
-	if [[ "${VPN_TYPE}" == "openvpn" ]]; then
-		echo "[INFO] Starting OpenVPN..." | ts '%Y-%m-%d %H:%M:%.S'
-		cd /config/openvpn
-		exec openvpn --pull-filter ignore route-ipv6 --pull-filter ignore ifconfig-ipv6 --config "${VPN_CONFIG}" &
-		#exec /bin/bash /etc/openvpn/openvpn.init start &
-	else
-		echo "[INFO] Starting WireGuard..." | ts '%Y-%m-%d %H:%M:%.S'
-		cd /config/wireguard
-		if ip link | grep -q `basename -s .conf $VPN_CONFIG`; then
-			wg-quick down $VPN_CONFIG || echo "WireGuard is down already" | ts '%Y-%m-%d %H:%M:%.S' # Run wg-quick down as an extra safeguard in case WireGuard is still up for some reason
-			sleep 0.5 # Just to give WireGuard a bit to go down
-		fi
-		wg-quick up $VPN_CONFIG
-		#exec /bin/bash /etc/openvpn/openvpn.init start &
-	fi
+	echo "[INFO] Starting ${VPN_TYPE}..." | ts '%Y-%m-%d %H:%M:%.S'
+	/etc/qbittorrent/vpn_start.bash
 	exec /bin/bash /etc/qbittorrent/iptables.sh
 else
 	echo "[WARNIG] @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" | ts '%Y-%m-%d %H:%M:%.S'
