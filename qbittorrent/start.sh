@@ -171,7 +171,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 			if [[ ! -z "${VPN_DOWN_SCRIPT}" && -f "/config/vpn_down.sh" && "${VPN_DOWN_SCRIPT,,}" != "0" && "${VPN_DOWN_SCRIPT,,}" != "false" && "${VPN_DOWN_SCRIPT,,}" != "no" ]]; then
 			        /config/vpn_down.sh
 			fi
-  			if [[ ! -z ${VPN_DOWN_FILE} && "${VPN_DOWN_FILE,,}" != "0" && "${VPN_DOWN_FILE,,}" != "false" && "${VPN_DOWN_FILE,,}" != "no" ]]; then
+  			if [[ ! -z ${VPN_DOWN_FILE} && "${VPN_DOWN_FILE,,}" != "0" && "${VPN_DOWN_FILE,,}" != "false" && "${VPN_DOWN_FILE,,}" != "no" && ! -f "/config/vpn_down" ]]; then
     				date +"%s" | ts '%Y-%m-%d %H:%M:%.S' > "/config/vpn_down"
 			fi
 			echo "[ERROR] Network is possibly down." | ts '%Y-%m-%d %H:%M:%.S'
