@@ -7,7 +7,7 @@ while : ; do
 	if [[ ! -z "${tunnelstat}" ]]; then
 		break
 	else
-		if [[ "openvpn" == "${VPN_TYPE} && ! -z "${VPN_CONF_SWITCH_OPENVPN_AT_START}" && "${VPN_CONF_SWITCH_OPENVPN_AT_START,,}" != "0" && "${VPN_CONF_SWITCH_OPENVPN_AT_START,,}" != "false" && "${VPN_CONF_SWITCH_OPENVPN_AT_START,,}" != "no" ]]; then
+		if [[ "openvpn" == "${VPN_TYPE,,} && ! -z "${VPN_CONF_SWITCH_OPENVPN_AT_START}" && "${VPN_CONF_SWITCH_OPENVPN_AT_START,,}" != "0" && "${VPN_CONF_SWITCH_OPENVPN_AT_START,,}" != "false" && "${VPN_CONF_SWITCH_OPENVPN_AT_START,,}" != "no" ]]; then
 			if [[ ! $(echo "${VPN_CONF_SWITCH_OPENVPN_AT_START}" | grep "^[0-9]\+$") ]]; then
 				# assign safe default
 				echo "[INFO] $(basename "$0"): value for VPN_CONF_SWITCH_OPENVPN_AT_START not uderstood: $VPN_CONF_SWITCH_OPENVPN_AT_START, defaulting to 30 seconds." | ts '%Y-%m-%d %H:%M:%.S'
