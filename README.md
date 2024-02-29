@@ -73,6 +73,7 @@ $ docker run  -d \
 |`VPN_DOWN_SCRIPT` | No | On health check failure, run "/config/vpn_down.sh" | VPN_DOWN_SCRIPT=yes | no
 |`VPN_UP_SCRIPT` | No | On health check success, run "/confing/vpn_up.sh" | VPN_UP_SCRIPT=yes | no
 |`VPN_CONF_SWITCH` | No | On health check failure, run bundled conf switch script (read below) | VPN_CONF_SWITCH=yes | no
+|`VPN_CONF_SWITCH_OPENVPN_AT_START` | No | Restart OpenVPN with a new conf after n seconds | VPN_CONF_SWITCH_OPENVPN_AT_START=30 | no
 
 ## Volumes
 | Volume | Required | Function | Example |
