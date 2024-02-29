@@ -13,6 +13,16 @@ if [[ ! -z "${check_network}" ]]; then
 	exit 1
 fi
 
+# if "/config/${VPN_TYPE}_confs" is empty or non-existent,
+#   VPN_CONF_SWITCH and VPN_CONF_SWITCH_OPENVPN_AT_START do nothing
+if [[ -z "${VPN_CONF_SWITCH}" ]]; then
+	export VPN_CONF_SWITCH=1
+fi
+# VPN_CONF_SWITCH_OPENVPN_AT_START requires $VPN_TYPE to equal "openvpn"
+if [[ -z "${VPN_CONF_SWITCH_OPENVPN_AT_START}" ]]; then
+	export VPN_CONF_SWITCH_OPENVPN_AT_START=30
+fi
+
 export VPN_ENABLED=$(echo "${VPN_ENABLED,,}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
 if [[ ! -z "${VPN_ENABLED}" ]]; then
 	echo "[INFO] VPN_ENABLED defined as '${VPN_ENABLED}'" | ts '%Y-%m-%d %H:%M:%.S'
