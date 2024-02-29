@@ -15,17 +15,23 @@ fi
 
 # if "/config/${VPN_TYPE}_confs" is empty or non-existent,
 #   VPN_CONF_SWITCH and VPN_CONF_SWITCH_OPENVPN_AT_START do nothing
-if [[ -z "${VPN_CONF_SWITCH}" ]]; then
-	export VPN_CONF_SWITCH=1 	
+if [[ "${VPN_CONF_SWITCH}" != "0" && "${VPN_CONF_SWITCH}" != "no" && "${VPN_CONF_SWITCH}" != "false" ]]; then
+	export VPN_CONF_SWITCH=1
+else
+	export VPN_CONF_SWITCH=0
 fi
 echo "[INFO] VPN_CONF_SWITCH is set to ${VPN_CONF_SWITCH}" | ts '%Y-%m-%d %H:%M:%.S'
 # VPN_CONF_SWITCH_OPENVPN_AT_START requires $VPN_TYPE to equal "openvpn"
-if [[ -z "${VPN_CONF_SWITCH_OPENVPN_AT_START}" ]]; then
-	export VPN_CONF_SWITCH_OPENVPN_AT_START=30
-elif [[ ! $(echo "${VPN_CONF_SWITCH_OPENVPN_AT_START}" | grep "^[0-9]\+$") ]]; then
-	# assign safe default
-	echo "[INFO] $(basename "$0"): value for VPN_CONF_SWITCH_OPENVPN_AT_START not uderstood: $VPN_CONF_SWITCH_OPENVPN_AT_START, defaulting to 30 seconds." | ts '%Y-%m-%d %H:%M:%.S'
-	VPN_CONF_SWITCH_OPENVPN_AT_START=30;
+if [[ "${VPN_CONF_SWITCH_OPENVPN_AT_START}" != "0" && "${VPN_CONF_SWITCH_OPENVPN_AT_START}" != "no" && "${VPN_CONF_SWITCH_OPENVPN_AT_START}" != "false" ]]; then
+	if [[ ! $(echo "${VPN_CONF_SWITCH_OPENVPN_AT_START}" | grep "^[0-9]\+$") ]]; then
+		# assign default value
+		if [[ ! -z "${VPN_CONF_SWITCH_OPENVPN_AT_START}" ]]; then
+			echo "[INFO] $(basename "$0"): value for VPN_CONF_SWITCH_OPENVPN_AT_START not uderstood: $VPN_CONF_SWITCH_OPENVPN_AT_START, defaulting to 30 seconds." | ts '%Y-%m-%d %H:%M:%.S'
+		fi
+		export VPN_CONF_SWITCH_OPENVPN_AT_START=30;
+	fi
+else
+	export VPN_CONF_SWITCH_OPENVPN_AT_START=0;
 fi
 echo "[INFO] VPN_CONF_SWITCH_OPENVPN_AT_START is set to ${VPN_CONF_SWITCH_OPENVPN_AT_START}" | ts '%Y-%m-%d %H:%M:%.S'
 if [[ ! -z "${VPN_DOWN_FILE}" ]]; then
