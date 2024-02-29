@@ -85,7 +85,7 @@ $ docker run  -d \
 | `8999` | UDP | Yes | qBittorrent UDP Listening Port | `8999:8999/udp`|
 
 # Access the WebUI
-Access https://IPADDRESS:PORT from a browser on the same network. (for example: https://192.168.0.90:8080)
+Access https://IPADDRESS:PORT from a browser on the same network. For example: https://192.168.0.90:8080. Or, to access on the same computer, localhost:8080 or 127.0.0.1:8080.
 
 ## Default Credentials
 
