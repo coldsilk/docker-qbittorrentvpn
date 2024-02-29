@@ -26,7 +26,7 @@ if [[ "${VPN_CONF_SWITCH_OPENVPN_AT_START}" != "0" && "${VPN_CONF_SWITCH_OPENVPN
 	if [[ ! $(echo "${VPN_CONF_SWITCH_OPENVPN_AT_START}" | grep "^[0-9]\+$") ]]; then
 		# assign default value
 		if [[ ! -z "${VPN_CONF_SWITCH_OPENVPN_AT_START}" ]]; then
-			echo "[INFO] $(basename "$0"): value for VPN_CONF_SWITCH_OPENVPN_AT_START not uderstood: $VPN_CONF_SWITCH_OPENVPN_AT_START, defaulting to 30 seconds." | ts '%Y-%m-%d %H:%M:%.S'
+			echo "[INFO] $(basename "$0"): value for VPN_CONF_SWITCH_OPENVPN_AT_START not understood: $VPN_CONF_SWITCH_OPENVPN_AT_START, defaulting to 30 seconds." | ts '%Y-%m-%d %H:%M:%.S'
 		fi
 		export VPN_CONF_SWITCH_OPENVPN_AT_START=30;
 	fi
