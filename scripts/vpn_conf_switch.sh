@@ -13,13 +13,13 @@ function vpn_conf_switch() (
   CONFS_FILTER='ls -tp1 "$CONFS_DIR" | grep -v /' # eval'd
             ME=$(basename "$0")
 
-  if [ ! -d "$CONFS_DIR" ]; then
-    echo "[ERROR] $ME: VPN confs directory doesn't exist: \"$CONFS_DIR\"" | ts '%Y-%m-%d %H:%M:%.S'
-    return 1
-  fi
-
   if [ "$VPN_TYPE" != "openvpn" ] && [ "$VPN_TYPE" != "wireguard" ]; then
     echo "[ERROR] $ME: VPN_TYPE is not \"openvpn\" or \"wireguard\": \"$VPN_TYPE\"" | ts '%Y-%m-%d %H:%M:%.S'
+    return 1
+  fi
+  
+  if [ ! -d "$CONFS_DIR" ]; then
+    echo "[ERROR] $ME: VPN confs directory doesn't exist: \"$CONFS_DIR\"" | ts '%Y-%m-%d %H:%M:%.S'
     return 2
   fi
 
