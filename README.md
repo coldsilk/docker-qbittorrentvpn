@@ -128,14 +128,21 @@ User ID (PUID) and Group ID (PGID) can be found by issuing the following command
 ```
 id <username>
 ```
+
 # VPN_DOWN_SCRIPT and VPN_UP_SCRIPT
-Put `"vpn_down.sh"` and/or `"vpn_up.sh"` in the `"/config"` directory. You must make the scripts executable yourself, eg. `chmod` `+x` `"/config/vpn_down.sh"`. `"/config/vpn_down.sh"` runs every health check failure and `"/config/vpn_up.sh"` runs every health check success.
+Required: An initial successful connection.
+Put "`vpn_down.sh`" and/or "`vpn_up.sh`" in the "`/config`" directory. You must make the scripts executable yourself, eg. `chmod` `+x` "`/config/vpn_down.sh`". "`/config/vpn_down.sh`" runs every health check failure and "`/config/vpn_up.sh`" runs every health check success.
 
 # VPN_DOWN_FILE
-On health check failure, writes the file `"/config/vpn_down"`, no file extension. It will be deleted after a successful connection. It contains a timestamp in the form of: `%Y-%m-%d %H:%M:%.S seconds_since_epoch`
+Required: An initial successful connection.
+On health check failure, writes the file "`/config/vpn_down`", no file extension. It will be deleted after a successful connection. It contains a timestamp in the form of: `%Y-%m-%d %H:%M:%.S seconds_since_epoch`
 
 # VPN_CONF_SWITCH
-Name your openvpn file `"default.ovpn"` or wireguard file `"wg0.conf"`. For openvpn, put this 1 file in "/config/openvpn/", for wireguard "/config/wireguard/". Put all extra vpn confs in `"/config/openvpn_confs", for wireguard `"/config/wireguard_confs"`. On health check failure, this happens: `cp` `-f` `"/config/openvpn_confs/a_random.ovpn"` `"/config/openvpn/default.ovpn"`. The script that is ran is located in the container at "/scripts/vpn_conf_switch.sh".
+Required: An initial successful connection.
+Name your openvpn file "`default.ovpn`" or wireguard file "`wg0.conf`". For openvpn, put this 1 file in "`/config/openvpn/`", for wireguard "`/config/wireguard/`". Put all extra vpn confs in "`/config/openvpn_confs`", for wireguard "`/config/wireguard_confs`". On health check failure, this happens: `cp` `-f` "`/config/openvpn_confs/a_random.ovpn`" "`/config/openvpn/default.ovpn`". The script that is ran is located in the container at "`/scripts/vpn_conf_switch.sh`".
+
+# VPN_CONF_SWITCH_OPENVPN_AT_START=N
+At container start and restart, if openvpn hasn't connected after `N` seconds, switch out the "`default.conf`" and then kill and restart `openvpn`. Essentially, if you're going to use `VPN_CONF_SWITCH` with openvpn, then you should use this too. This does not require `VPN_CONF_SWITCH` but, it does use the same script. Make sure to use a large enough value for seconds or the VPN will never connect. The default is 30 seconds if a value is supplied other than a positive integer > 0, "`0`", "`false`" or "`no`". Wireguard works fine with just `VPN_CONF_SWITCH`.
 
 # Issues
 If you are having issues with this container please submit an issue on GitHub.  
