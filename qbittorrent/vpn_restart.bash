@@ -2,7 +2,7 @@
 vpn_pid=""
 if [ "openvpn" == "${VPN_TYPE}" ]; then
   while : ; do
-      vpn_pid=$(echo $(ps -e | grep "openvpn") | cut -d ' ' -f 1 | grep "^[0-9]\+$");
+      vpn_pid=$(echo $(ps -e | grep "${VPN_TYPE}") | cut -d ' ' -f 1 | grep "^[0-9]\+$");
       if [ "$vpn_pid" != "" ]; then
         kill -9 $vpn_pid
       else
