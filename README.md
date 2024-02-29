@@ -4,7 +4,7 @@
 
 Docker container which runs the latest [qBittorrent](https://github.com/qbittorrent/qBittorrent)-nox client while connecting to WireGuard or OpenVPN with iptables killswitch to prevent IP leakage when the tunnel goes down.
 
-[preview]: https://raw.githubusercontent.com/DyonR/docker-templates/master/Screenshots/qbittorrentvpn/qbittorrentvpn-webui.png "qBittorrent WebUI"
+[preview]: qbittorrentvpn-webui.png "qBittorrent WebUI"
 ![alt text][preview]
 
 # Docker Features
