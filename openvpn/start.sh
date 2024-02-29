@@ -22,6 +22,10 @@ echo "[INFO] VPN_CONF_SWITCH is set to ${VPN_CONF_SWITCH}" | ts '%Y-%m-%d %H:%M:
 # VPN_CONF_SWITCH_OPENVPN_AT_START requires $VPN_TYPE to equal "openvpn"
 if [[ -z "${VPN_CONF_SWITCH_OPENVPN_AT_START}" ]]; then
 	export VPN_CONF_SWITCH_OPENVPN_AT_START=30
+elif [[ ! $(echo "${VPN_CONF_SWITCH_OPENVPN_AT_START}" | grep "^[0-9]\+$") ]]; then
+	# assign safe default
+	echo "[INFO] $(basename "$0"): value for VPN_CONF_SWITCH_OPENVPN_AT_START not uderstood: $VPN_CONF_SWITCH_OPENVPN_AT_START, defaulting to 30 seconds." | ts '%Y-%m-%d %H:%M:%.S'
+	VPN_CONF_SWITCH_OPENVPN_AT_START=30;
 fi
 echo "[INFO] VPN_CONF_SWITCH_OPENVPN_AT_START is set to ${VPN_CONF_SWITCH_OPENVPN_AT_START}" | ts '%Y-%m-%d %H:%M:%.S'
 if [[ ! -z "${VPN_DOWN_FILE}" ]]; then
