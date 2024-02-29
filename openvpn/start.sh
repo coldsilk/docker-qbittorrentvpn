@@ -16,11 +16,22 @@ fi
 # if "/config/${VPN_TYPE}_confs" is empty or non-existent,
 #   VPN_CONF_SWITCH and VPN_CONF_SWITCH_OPENVPN_AT_START do nothing
 if [[ -z "${VPN_CONF_SWITCH}" ]]; then
-	export VPN_CONF_SWITCH=1
+	export VPN_CONF_SWITCH=1 	
 fi
+echo "[INFO] VPN_CONF_SWITCH is set to ${VPN_CONF_SWITCH}" | ts '%Y-%m-%d %H:%M:%.S'
 # VPN_CONF_SWITCH_OPENVPN_AT_START requires $VPN_TYPE to equal "openvpn"
 if [[ -z "${VPN_CONF_SWITCH_OPENVPN_AT_START}" ]]; then
 	export VPN_CONF_SWITCH_OPENVPN_AT_START=30
+fi
+echo "[INFO] VPN_CONF_SWITCH_OPENVPN_AT_START is set to ${VPN_CONF_SWITCH_OPENVPN_AT_START}" | ts '%Y-%m-%d %H:%M:%.S'
+if [[ ! -z "${VPN_DOWN FILE}" ]]; then
+	echo "[INFO] VPN_DOWN_FILE is set to ${VPN_DOWN FILE}" | ts '%Y-%m-%d %H:%M:%.S'
+fi
+if [[ ! -z "${VPN_UP_SCRIPT}" ]]; then
+	echo "[INFO] VPN_UP_SCRIPT is set to ${VPN_UP_SCRIPT}" | ts '%Y-%m-%d %H:%M:%.S'
+fi
+if [[ ! -z "${VPN_DOWN_SCRIPT}" ]]; then
+	echo "[INFO] VPN_DOWN_SCRIPT is set to ${VPN_DOWN_SCRIPT}" | ts '%Y-%m-%d %H:%M:%.S'
 fi
 
 export VPN_ENABLED=$(echo "${VPN_ENABLED,,}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
