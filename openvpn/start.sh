@@ -24,8 +24,8 @@ if [[ -z "${VPN_CONF_SWITCH_OPENVPN_AT_START}" ]]; then
 	export VPN_CONF_SWITCH_OPENVPN_AT_START=30
 fi
 echo "[INFO] VPN_CONF_SWITCH_OPENVPN_AT_START is set to ${VPN_CONF_SWITCH_OPENVPN_AT_START}" | ts '%Y-%m-%d %H:%M:%.S'
-if [[ ! -z "${VPN_DOWN FILE}" ]]; then
-	echo "[INFO] VPN_DOWN_FILE is set to ${VPN_DOWN FILE}" | ts '%Y-%m-%d %H:%M:%.S'
+if [[ ! -z "${VPN_DOWN_FILE}" ]]; then
+	echo "[INFO] VPN_DOWN_FILE is set to ${VPN_DOWN_FILE}" | ts '%Y-%m-%d %H:%M:%.S'
 fi
 if [[ ! -z "${VPN_UP_SCRIPT}" ]]; then
 	echo "[INFO] VPN_UP_SCRIPT is set to ${VPN_UP_SCRIPT}" | ts '%Y-%m-%d %H:%M:%.S'
