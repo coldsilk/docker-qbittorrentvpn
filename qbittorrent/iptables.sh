@@ -8,13 +8,8 @@ while : ; do
 		break
 	else
 		if [[ "openvpn" == "${VPN_TYPE,,}" && ! -z "${VPN_CONF_SWITCH_OPENVPN_AT_START}" && "${VPN_CONF_SWITCH_OPENVPN_AT_START,,}" != "0" && "${VPN_CONF_SWITCH_OPENVPN_AT_START,,}" != "false" && "${VPN_CONF_SWITCH_OPENVPN_AT_START,,}" != "no" ]]; then
-			if [[ ! $(echo "${VPN_CONF_SWITCH_OPENVPN_AT_START}" | grep "^[0-9]\+$") ]]; then
-				# assign safe default
-				echo "[INFO] $(basename "$0"): value for VPN_CONF_SWITCH_OPENVPN_AT_START not uderstood: $VPN_CONF_SWITCH_OPENVPN_AT_START, defaulting to 30 seconds." | ts '%Y-%m-%d %H:%M:%.S'
-				VPN_CONF_SWITCH_OPENVPN_AT_START=30;
-			fi
 			# if the switch time is > than time passed, kill and restart the openvpn
-			#   after switching "default.conf" (or no switching if it doesn't exist)
+			#   after switching "default.conf" (or not switching if extras don't exist)
 			if [[ "$(( $(date +%s) - now ))" -ge "$VPN_CONF_SWITCH_OPENVPN_AT_START" && -f "/scripts/vpn_conf_switch.sh" ]]; then
 				/etc/qbittorrent/vpn_restart.bash
 				# update time for next switch and kill
