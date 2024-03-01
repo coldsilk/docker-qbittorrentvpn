@@ -19,7 +19,6 @@ if [[ "${VPN_CONF_SWITCH}" != "0" && "${VPN_CONF_SWITCH}" != "no" && "${VPN_CONF
 	export VPN_CONF_SWITCH=1
  	echo "[INFO] VPN_CONF_SWITCH is enabled" | ts '%Y-%m-%d %H:%M:%.S'
 fi
-# VPN_CONF_SWITCH_OPENVPN_AT_START requires $VPN_TYPE to equal "openvpn"
 if [[ "${VPN_CONF_SWITCH_OPENVPN_AT_START}" != "0" && "${VPN_CONF_SWITCH_OPENVPN_AT_START}" != "no" && "${VPN_CONF_SWITCH_OPENVPN_AT_START}" != "false" ]]; then
 	if [[ ! $(echo "${VPN_CONF_SWITCH_OPENVPN_AT_START}" | grep "^[0-9]\+$") ]]; then
 		# assign default value
