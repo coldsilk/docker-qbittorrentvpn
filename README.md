@@ -1,6 +1,6 @@
 # [qBittorrent](https://github.com/qbittorrent/qBittorrent), WireGuard and OpenVPN
-[![Docker Pulls](https://img.shields.io/docker/pulls/gderf/qbittorrentvpn)](https://hub.docker.com/r/gderf/qbittorrentvpn)
-[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/gderf/qbittorrentvpn/latest)](https://hub.docker.com/r/gderf/qbittorrentvpn)
+[![Docker Pulls](https://img.shields.io/docker/pulls/coldsilk/qbittorrentvpn)](https://hub.docker.com/r/coldsilk/qbittorrentvpn)
+[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/coldsilk/qbittorrentvpn/latest)](https://hub.docker.com/r/coldsilk/qbittorrentvpn)
 
 Docker container which runs the latest [qBittorrent](https://github.com/qbittorrent/qBittorrent)-nox client while connecting to WireGuard or OpenVPN with iptables killswitch to prevent IP leakage when the tunnel goes down.
 
@@ -34,13 +34,13 @@ $ docker run  -d \
               --cap-add NET_ADMIN \
               --sysctl "net.ipv4.conf.all.src_valid_mark=1" \
               --restart unless-stopped \
-              gderf/qbittorrentvpn
+              coldsilk/qbittorrentvpn
 ```
 
 ## Docker Tags
 | Tag | Description |
 |----------|----------|
-| `gderf/qbittorrentvpn:latest` | The latest version of qBittorrent with libtorrent 1_x_x |
+| `coldsilk/qbittorrentvpn:latest` | The latest version of qBittorrent with libtorrent 1_x_x |
 
 
 # Variables, Volumes, and Ports
@@ -145,5 +145,6 @@ If possible, always use the most up to date version of Docker, your operating sy
 
 ### Credits:
 [MarkusMcNugen/docker-qBittorrentvpn](https://github.com/MarkusMcNugen/docker-qBittorrentvpn)  
-[DyonR/jackettvpn](https://github.com/DyonR/jackettvpn)  
+[DyonR/jackettvpn](https://github.com/DyonR/jackettvpn)
+[coldsilk/docker-qBittorrentvpn](https://github.com/coldsilk/docker-qBittorrentvpn)
 This projects originates from MarkusMcNugen/docker-qBittorrentvpn, but forking was not possible since DyonR/jackettvpn uses the fork already.
