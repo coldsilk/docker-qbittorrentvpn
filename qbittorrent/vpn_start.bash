@@ -10,5 +10,5 @@ elif [ "wireguard" == "${VPN_TYPE}" ]; then
   fi
   wg-quick up $VPN_CONFIG
 else
-  echo "[ERROR] $(basename "$0"): VPN type not understood, received: ${VPN_TYPE}" | ts '%Y-%m-%d %H:%M:%.S'
+  echo "[ERROR] $(basename "$0"): VPN type was not understood, received: ${VPN_TYPE}" | ts '%Y-%m-%d %H:%M:%.S'
 fi
