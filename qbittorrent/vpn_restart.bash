@@ -9,7 +9,7 @@ if [ "openvpn" == "${VPN_TYPE}" ]; then
         break;
       fi
   done
-  sleep 1
+  sleep 0.3
   /scripts/vpn_conf_switch.sh "${VPN_TYPE}"
   echo "[INFO] $(basename "$0"): Restarting ${VPN_TYPE}..." | ts '%Y-%m-%d %H:%M:%.S'
   /etc/qbittorrent/vpn_start.bash
