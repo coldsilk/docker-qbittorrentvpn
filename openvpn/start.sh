@@ -14,7 +14,7 @@ if [[ ! -z "${check_network}" ]]; then
 fi
 
 # if "/config/${VPN_TYPE}_confs" is empty or non-existent,
-#   VPN_CONF_SWITCH and VPN_CONF_SWITCH_OPENVPN_AT_START do nothing
+#   then functionally VPN_CONF_SWITCH and VPN_CONF_SWITCH_OPENVPN_AT_START do nothing
 if [[ "${VPN_CONF_SWITCH}" != "0" && "${VPN_CONF_SWITCH}" != "no" && "${VPN_CONF_SWITCH}" != "false" ]]; then
 	export VPN_CONF_SWITCH=1
  	echo "[INFO] VPN_CONF_SWITCH is enabled" | ts '%Y-%m-%d %H:%M:%.S'
