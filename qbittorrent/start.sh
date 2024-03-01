@@ -165,20 +165,13 @@ if [ -e /proc/$qbittorrentpid ]; then
 		ping -c ${HEALTH_CHECK_AMOUNT} $HOST > /dev/null 2>&1
 		STATUS=$?
 		if [[ "${STATUS}" -ne 0 ]]; then
-  			if [[ ! -z ${VPN_DOWN_FILE} && "${VPN_DOWN_FILE,,}" != "0" && "${VPN_DOWN_FILE,,}" != "false" && "${VPN_DOWN_FILE,,}" != "no" ]]; then
-    				date +"%s" | ts '%Y-%m-%d %H:%M:%.S' > "/config/vpn_down"
-			fi
 			echo "[ERROR] Network is possibly down." | ts '%Y-%m-%d %H:%M:%.S'
 			sleep 1
 			if [[ ${RESTART_CONTAINER,,} == "1" || ${RESTART_CONTAINER,,} == "true" || ${RESTART_CONTAINER,,} == "yes" ]]; then
 				echo "[INFO] Restarting container." | ts '%Y-%m-%d %H:%M:%.S'
 				exit 1
 			fi
-		else
-			if [[ ! -z ${VPN_DOWN_FILE} && "${VPN_DOWN_FILE,,}" != "0" && "${VPN_DOWN_FILE,,}" != "false" && "${VPN_DOWN_FILE,,}" != "no" ]]; then
-    				\rm -f "/config/vpn_down" >/dev/null 2>&1
-			fi
-  		fi
+		fi
 		if [[ ${HEALTH_CHECK_SILENT,,} == "0" || ${HEALTH_CHECK_SILENT,,} == "false" || ${HEALTH_CHECK_SILENT,,} == "no" ]]; then
 			echo "[INFO] Network is up" | ts '%Y-%m-%d %H:%M:%.S'
 		fi
