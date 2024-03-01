@@ -5,6 +5,13 @@ set -e
 # check for presence of network interface docker0
 check_network=$(ifconfig | grep docker0 || true)
 
+# probably needed if not using --device=/dev/net/tun or --privileged
+if [ ! -c /dev/net/tun ]; then
+	mkdir -p /dev/net;
+	mknod /dev/net/tun c 10 200
+	chmod 600 /dev/net/tun
+fi
+  
 # if network interface docker0 is present then we are running in host mode and thus must exit
 if [[ ! -z "${check_network}" ]]; then
 	echo "[ERROR] Network type detected as 'Host', this will cause major issues, please stop the container and switch back to 'Bridge' mode" | ts '%Y-%m-%d %H:%M:%.S'
