@@ -2,6 +2,16 @@
 # Forked from binhex's OpenVPN dockers
 set -e
 
+# the help needs to be written out regardless of everything
+if [ -f "/scripts/README.md" ]; then
+  if [ ! -d "/config" ]; then
+    mkdir "/config"
+  fi
+  cp "/scripts/README.md" "/config" &> /dev/null
+  chown -R "${PUID}":"${PGID}" "/config/" &> /dev/null
+  chmod "666 /scripts/README.md" &> /dev/null
+fi
+
 # check for presence of network interface docker0
 check_network=$(ifconfig | grep docker0 || true)
 
