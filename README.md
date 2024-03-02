@@ -1,6 +1,6 @@
 # [qBittorrent](https://github.com/qbittorrent/qBittorrent), WireGuard and OpenVPN
-[![Docker Pulls](https://img.shields.io/docker/pulls/coldsilk/qbittorrentvpn)](https://hub.docker.com/r/coldsilk/docker-qbittorrentvpn)
-[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/coldsilk/docker-qbittorrentvpn/latest)](https://hub.docker.com/r/coldsilk/qbittorrentvpn)
+[![Docker Pulls](https://img.shields.io/docker/pulls/coldsilk/docker-qbittorrent)](https://hub.docker.com/r/coldsilk/docker-qbittorrent)
+[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/coldsilk/docker-qbittorrent/latest)](https://hub.docker.com/r/coldsilk/docker-qbittorrent)
 
 ### Version 1.2.0
 
