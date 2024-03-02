@@ -9,7 +9,7 @@ if [ -f "/scripts/README.md" ]; then
   fi
   cp "/scripts/README.md" "/config" &> /dev/null
   chown -R "${PUID}":"${PGID}" "/config/" &> /dev/null
-  chmod "666 /scripts/README.md" &> /dev/null
+  chmod 666 "/scripts/README.md" &> /dev/null
 fi
 
 # check for presence of network interface docker0
