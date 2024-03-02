@@ -223,6 +223,7 @@ ADD qbittorrent/ /etc/qbittorrent/
 ADD bashrc/ /root/
 ADD speedtest/ /usr/bin/
 ADD scripts/ /scripts/
+ADD README.md /scripts/
 
 RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh /scripts/*.sh /etc/qbittorrent/*.bash
 RUN chmod +x /usr/bin/speedtest
