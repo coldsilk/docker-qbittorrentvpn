@@ -1,8 +1,10 @@
 # [qBittorrent](https://github.com/qbittorrent/qBittorrent), WireGuard and OpenVPN
-[![Docker Pulls](https://img.shields.io/docker/pulls/coldsilk/qbittorrentvpn)](https://hub.docker.com/r/coldsilk/qbittorrentvpn)
-[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/coldsilk/qbittorrentvpn/latest)](https://hub.docker.com/r/coldsilk/qbittorrentvpn)
+[![Docker Pulls](https://img.shields.io/docker/pulls/coldsilk/qbittorrentvpn)](https://hub.docker.com/r/coldsilk/docker-qbittorrentvpn)
+[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/coldsilk/docker-qbittorrentvpn/latest)](https://hub.docker.com/r/coldsilk/qbittorrentvpn)
 
-Docker container which runs the latest [qBittorrent](https://github.com/qbittorrent/qBittorrent)-nox client while connecting to WireGuard or OpenVPN with iptables killswitch to prevent IP leakage when the tunnel goes down.
+### Version 1.2.0
+
+Docker container which runs the latest [qBittorrent](https://github.com/qbittorrent/qBittorrent)-nox client while connecting to WireGuard or OpenVPN with iptables killswitch to prevent IP leakage when the tunnel goes down. Also a automatic VPN conf switcher incase you have a free/unstable VPN.
 
 [preview]: qbittorrentvpn-webui.png "qBittorrent WebUI"
 ![alt text][preview]
@@ -34,14 +36,28 @@ $ docker run  -d \
               --cap-add NET_ADMIN \
               --sysctl "net.ipv4.conf.all.src_valid_mark=1" \
               --restart unless-stopped \
-              coldsilk/qbittorrentvpn
+              coldsilk/docker-qbittorrent:latest
 ```
 
 ## Docker Tags
 | Tag | Description |
 |----------|----------|
-| `coldsilk/qbittorrentvpn:latest` | The latest version of qBittorrent with libtorrent 1_x_x |
+| `coldsilk/docker-qbittorrent:latest` | The latest version of qBittorrent with libtorrent 1_x_x |
 
+## To create the image and run the container from this git
+```
+Download and extract the zip file or clone with:
+$ git clone https://github.com/coldsilk/docker-qbittorrentvpn
+then...
+$ cd docker-qbittorrentvpn
+$ docker build -t yourtagname .
+Now create the container as normal but with yourtagname
+at the end instead of coldsilk/docker-qbittorrent:latest
+$ docker run -d \
+              ... \
+              ... \
+              yourtagname
+```
 
 # Variables, Volumes, and Ports
 ## Environment Variables
@@ -145,6 +161,6 @@ If possible, always use the most up to date version of Docker, your operating sy
 
 ### Credits:
 [MarkusMcNugen/docker-qBittorrentvpn](https://github.com/MarkusMcNugen/docker-qBittorrentvpn)  
-[DyonR/jackettvpn](https://github.com/DyonR/jackettvpn)
-[coldsilk/docker-qBittorrentvpn](https://github.com/coldsilk/docker-qBittorrentvpn)
+[DyonR/jackettvpn](https://github.com/DyonR/jackettvpn)  
+[coldsilk/docker-qBittorrentvpn](https://github.com/coldsilk/docker-qBittorrentvpn)  
 This projects originates from MarkusMcNugen/docker-qBittorrentvpn, but forking was not possible since DyonR/jackettvpn uses the fork already.
