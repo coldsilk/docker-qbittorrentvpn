@@ -8,7 +8,7 @@ if [ -f "/scripts/README.md" ]; then
     mkdir "/config"
   fi
   cp "/scripts/README.md" "/config" &> /dev/null
-  chown -R "${PUID}":"${PGID}" "/config/" &> /dev/null
+  chown "${PUID}":"${PGID}" "/config/README.md" &> /dev/null
   chmod 666 "/scripts/README.md" &> /dev/null
 fi
 
