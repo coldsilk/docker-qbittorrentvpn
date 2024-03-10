@@ -160,27 +160,33 @@ if [ -e /proc/$qbittorrentpid ]; then
 	fi
 	echo "[INFO] HEALTH_CHECK_AMOUNT is set to ${HEALTH_CHECK_AMOUNT}" | ts '%Y-%m-%d %H:%M:%.S'
 
+	failures=0;
+ 	failures_max=2;
 	while true; do
 		# Ping uses both exit codes 1 and 2. Exit code 2 cannot be used for docker health checks, therefore we use this script to catch error code 2
 		ping -c ${HEALTH_CHECK_AMOUNT} $HOST > /dev/null 2>&1
 		STATUS=$?
 		if [[ "${STATUS}" -ne 0 ]]; then
-  			if [[ ! -z "${VPN_CONF_SWITCH}" && "${VPN_CONF_SWITCH,,}" != "0" && "${VPN_CONF_SWITCH,,}" != "false" && "${VPN_CONF_SWITCH,,}" != "no" && -f "/scripts/vpn_conf_switch.sh" ]]; then
-			        /scripts/vpn_conf_switch.sh "${VPN_TYPE}"
-			fi
-			if [[ ! -z "${VPN_DOWN_SCRIPT}" && "${VPN_DOWN_SCRIPT,,}" != "0" && "${VPN_DOWN_SCRIPT,,}" != "false" && "${VPN_DOWN_SCRIPT,,}" != "no" && -f "/config/vpn_down.sh" ]]; then
-			        /config/vpn_down.sh
-			fi
-  			if [[ ! -z ${VPN_DOWN_FILE} && "${VPN_DOWN_FILE,,}" != "0" && "${VPN_DOWN_FILE,,}" != "false" && "${VPN_DOWN_FILE,,}" != "no" && ! -f "/config/vpn_down" ]]; then
-    				date +"%s" | ts '%Y-%m-%d %H:%M:%.S' > "/config/vpn_down"
-			fi
-			echo "[ERROR] Network is possibly down." | ts '%Y-%m-%d %H:%M:%.S'
-			sleep 1
-			if [[ ${RESTART_CONTAINER,,} == "1" || ${RESTART_CONTAINER,,} == "true" || ${RESTART_CONTAINER,,} == "yes" ]]; then
-				echo "[INFO] Restarting container." | ts '%Y-%m-%d %H:%M:%.S'
-				exit 1
-			fi
+  			failures=$((failures + 1));
+     			if [ "$failures" -eq "$failures_max" ]; then 
+	  			if [[ ! -z "${VPN_CONF_SWITCH}" && "${VPN_CONF_SWITCH,,}" != "0" && "${VPN_CONF_SWITCH,,}" != "false" && "${VPN_CONF_SWITCH,,}" != "no" && -f "/scripts/vpn_conf_switch.sh" ]]; then
+				        /scripts/vpn_conf_switch.sh "${VPN_TYPE}"
+				fi
+				if [[ ! -z "${VPN_DOWN_SCRIPT}" && "${VPN_DOWN_SCRIPT,,}" != "0" && "${VPN_DOWN_SCRIPT,,}" != "false" && "${VPN_DOWN_SCRIPT,,}" != "no" && -f "/config/vpn_down.sh" ]]; then
+				        /config/vpn_down.sh
+				fi
+	  			if [[ ! -z ${VPN_DOWN_FILE} && "${VPN_DOWN_FILE,,}" != "0" && "${VPN_DOWN_FILE,,}" != "false" && "${VPN_DOWN_FILE,,}" != "no" && ! -f "/config/vpn_down" ]]; then
+	    				date +"%s" | ts '%Y-%m-%d %H:%M:%.S' > "/config/vpn_down"
+				fi
+				echo "[ERROR] Network is possibly down." | ts '%Y-%m-%d %H:%M:%.S'
+				sleep 1
+				if [[ ${RESTART_CONTAINER,,} == "1" || ${RESTART_CONTAINER,,} == "true" || ${RESTART_CONTAINER,,} == "yes" ]]; then
+					echo "[INFO] Restarting container." | ts '%Y-%m-%d %H:%M:%.S'
+					exit 1
+				fi
+    			fi
 		else
+  			failures=0;
 			if [[ ! -z "${VPN_UP_SCRIPT}" && "${VPN_UP_SCRIPT,,}" != "0" && "${VPN_UP_SCRIPT,,}" != "false" && "${VPN_UP_SCRIPT,,}" != "no" && -f "/config/vpn_up.sh" ]]; then
 			        /config/vpn_up.sh
 			fi
