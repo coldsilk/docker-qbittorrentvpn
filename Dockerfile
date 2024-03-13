@@ -205,6 +205,7 @@ RUN echo "deb http://deb.debian.org/debian/ bullseye non-free" > /etc/apt/source
     zip \
     curl\
     wget\
+    netcat \
     nano\
     && apt-get clean \
     && apt --purge autoremove -y \
