@@ -31,7 +31,7 @@ $ docker run  -d \
               -v /your/downloads/path/:/downloads \
               -e "VPN_ENABLED=yes" \
               -e "VPN_TYPE=wireguard" \
-              -e "LAN_NETWORK=192.168.0.0/24" \
+              -e "LAN_NETWORK=192.168.0.0/16" \
               -p 8080:8080 \
               --cap-add NET_ADMIN \
               --sysctl "net.ipv4.conf.all.src_valid_mark=1" \
@@ -67,17 +67,18 @@ $ docker run -d \
 |`VPN_TYPE`| Yes | WireGuard or OpenVPN (wireguard/openvpn)?|`VPN_TYPE=wireguard`|`openvpn`|
 |`VPN_USERNAME`| No | If username and password provided, configures ovpn file automatically |`VPN_USERNAME=ad8f64c02a2de`||
 |`VPN_PASSWORD`| No | If username and password provided, configures ovpn file automatically |`VPN_PASSWORD=ac98df79ed7fb`||
-|`LAN_NETWORK`| Yes (atleast one) | Comma delimited local Network's with CIDR notation |`LAN_NETWORK=192.168.0.0/24,10.10.0.0/24`||
+|`LAN_NETWORK`| Yes (at least one) | Comma delimited local Network's with CIDR notation |`LAN_NETWORK=192.168.0.0/24,10.10.0.0/24`||
 |`LEGACY_IPTABLES`| No | Use `iptables (legacy)` instead of `iptables (nf_tables)` |`LEGACY_IPTABLES=yes`||
 |`ENABLE_SSL`| No | Let the container handle SSL (yes/no)? |`ENABLE_SSL=yes`|`yes`|
 |`NAME_SERVERS`| No | Comma delimited name servers |`NAME_SERVERS=1.1.1.1,1.0.0.1`|`1.1.1.1,1.0.0.1`|
 |`PUID`| No | UID applied to /config files and /downloads |`PUID=99`|`99`|
 |`PGID`| No | GID applied to /config files and /downloads  |`PGID=100`|`100`|
 |`UMASK`| No | |`UMASK=002`|`002`|
-|`HEALTH_CHECK_HOST`| No |This is the host or IP that the healthcheck script will use to check an active connection|`HEALTH_CHECK_HOST=one.one.one.one`|`one.one.one.one`|
-|`HEALTH_CHECK_INTERVAL`| No |This is the time in seconds that the container waits to see if the internet connection still works (check if VPN died)|`HEALTH_CHECK_INTERVAL=300`|`300`|
+|`HEALTH_CHECK_HOST`| Yes (at least one) |The host(s) used to check for an active connection, it can be a comma seperated list|`HEALTH_CHECK_HOST=one.one.one.one,8.8.8.8`|`one.one.one.one,8.8.8.8`|
+|`HEALTH_CHECK_INTERVAL`| No |This is the time in seconds that the container waits to see if the internet connection still works (check if VPN died)|`HEALTH_CHECK_INTERVAL=30`|`30`|
+| `HEALTH_CHECK_FAILURES`| No |The amount of intervals that have to fail before a restart can happen. If HEALTH_CHECK_INTERVAL=30 and this is 3, then ~90 seconds (+ ping time * hosts).|`HEALTH_CHECK_FAILURES=3`|`3`|
 |`HEALTH_CHECK_SILENT`| No |Set to `1` to supress the 'Network is up' message. Defaults to `1` if unset.|`HEALTH_CHECK_SILENT=1`|`1`|
-|`HEALTH_CHECK_AMOUNT`| No |The amount of pings that get send when checking for connection.|`HEALTH_CHECK_AMOUNT=10`|`1`|
+|`HEALTH_CHECK_AMOUNT`| No |The amount of pings that get send when checking for connection.|`HEALTH_CHECK_AMOUNT=3`|`3`|
 |`RESTART_CONTAINER`| No |Set to `no` to **disable** the automatic restart when the network is possibly down.|`RESTART_CONTAINER=yes`|`yes`|
 |`INSTALL_PYTHON3`| No |Set this to `yes` to let the container install Python3.|`INSTALL_PYTHON3=yes`|`no`|
 |`ADDITIONAL_PORTS`| No |Adding a comma delimited list of ports will allow these ports via the iptables script.|`ADDITIONAL_PORTS=1234,8112`||
