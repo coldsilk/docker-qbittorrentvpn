@@ -157,7 +157,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 
 	# If health check failures is set
 	if [[ -z "${HEALTH_CHECK_FAILURES}" ]]; then
-		echo "[INFO] HEALTH_CHECK_FAILURES is not set, sing $DEFAULT_HEALTH_CHECK_FAILURES." | ts '%Y-%m-%d %H:%M:%.S'
+		echo "[INFO] HEALTH_CHECK_FAILURES is not set, using $DEFAULT_HEALTH_CHECK_FAILURES." | ts '%Y-%m-%d %H:%M:%.S'
 		HEALTH_CHECK_FAILURES=${DEFAULT_HEALTH_CHECK_FAILURES}
 	fi
 
