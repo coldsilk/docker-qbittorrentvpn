@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Check if /config/qBittorrent exists, if not make the directory
 if [[ ! -e /config/qBittorrent/config ]]; then
 	mkdir -p /config/qBittorrent/config
@@ -17,6 +18,11 @@ if [ ! -e /config/qBittorrent/config/qBittorrent.conf ]; then
 	chown ${PUID}:${PGID} /config/qBittorrent/config/qBittorrent.conf
 fi
 
+# add some convenience links and aliases to install python easier
+ln /etc/qbittorrent/install-python3.sh /usr/local/sbin/installpython
+ln /etc/qbittorrent/install-python3.sh /usr/local/sbin/installpython3
+alias installpython="/etc/qbittorrent/install-python3.sh"
+alias installpython3="/etc/qbittorrent/install-python3.sh"
 export INSTALL_PYTHON3=$(echo "${INSTALL_PYTHON3,,}")
 if [[ $INSTALL_PYTHON3 == "1" || $INSTALL_PYTHON3 == "true" || $INSTALL_PYTHON3 == "yes" ]]; then
 	/bin/bash /etc/qbittorrent/install-python3.sh
@@ -101,9 +107,11 @@ echo "[INFO] Starting qBittorrent daemon..." | ts '%Y-%m-%d %H:%M:%.S'
 /bin/bash /etc/qbittorrent/qbittorrent.init start &
 chmod -R 755 /config/qBittorrent
 
-# wait for the qbittorrent.init script to finish and grab the qbittorrent pid
-# from the file created by the start script
-wait $!
+# The below is incorrect, $qbittorrentpid becomes the PID of the "/bin/bash"
+# that spawns qbittorrent. So, you cannot use it to kill qbittorrent.
+# WRONG -> "wait for the qbittorrent.init script to finish and grab the qbittorrent pid
+# from the file created by the start script" [sic]
+wait $! # technially the /bin/bash PID, not qbittorrent's PID
 qbittorrentpid=$(cat /var/run/qbittorrent.pid)
 
 # If the process exists, make sure that the log file has the proper rights and start the health check
@@ -136,21 +144,21 @@ if [ -e /proc/$qbittorrentpid ]; then
 	fi
 
 	# split the hosts into an array
-	local _temp=()
-	local _hosts=()
+	_temp=()
+	_hosts=()
 	IFS=',' read -r -a _temp <<< "$HOST"
 	for i in "${_temp[@]}"; do
 		if [ "$i" != "" ]; then _hosts+=("$i"); fi
 	done
 	if [ "0" == "${#_hosts[@]}" ]; then
-		echo "No hosts supplied, exiting." | ts '%Y-%m-%d %H:%M:%.S'
+		echo "[ERROR] No hosts supplied, exiting." | ts '%Y-%m-%d %H:%M:%.S'
 		exit 1
 	fi
 
 	# If health check failures is set
 	if [[ -z "${HEALTH_CHECK_FAILURES}" ]]; then
-		echo "[INFO] HEALTH_CHECK_FAILURES is not set. Using $DEFAULT_HEALTH_CHECK_FAILURES" | ts '%Y-%m-%d %H:%M:%.S'
-		$HEALTH_CHECK_FAILURES=${DEFAULT_HEALTH_CHECK_FAILURES}
+		echo "[INFO] HEALTH_CHECK_FAILURES is not set, sing $DEFAULT_HEALTH_CHECK_FAILURES." | ts '%Y-%m-%d %H:%M:%.S'
+		HEALTH_CHECK_FAILURES=${DEFAULT_HEALTH_CHECK_FAILURES}
 	fi
 
 	# If HEALTH_CHECK_INTERVAL is zero (not set) default it to DEFAULT_INTERVAL
@@ -179,6 +187,19 @@ if [ -e /proc/$qbittorrentpid ]; then
 	fi
 	echo "[INFO] HEALTH_CHECK_AMOUNT is set to ${HEALTH_CHECK_AMOUNT}" | ts '%Y-%m-%d %H:%M:%.S'
 
+	# If you expect the torrent search in qbittorrent to work, then you need python3
+	if [[ $INSTALL_PYTHON3 == "1" || $INSTALL_PYTHON3 == "true" || $INSTALL_PYTHON3 == "yes" ]]; then
+		if [ ! -e /usr/bin/python3 ]; then
+			echo ""
+			echo ""
+			echo ""
+			echo "[ERROR] _PYTHON_3_FAILED_TO_INSTALL_" | ts '%Y-%m-%d %H:%M:%.S'
+			echo ""
+			echo ""
+			echo ""
+		fi
+	fi
+
 	failures=0;
 	while true; do
 		# Ping uses both exit codes 1 and 2. Exit code 2 cannot be used for docker health checks, therefore we use this script to catch error code 2
@@ -189,12 +210,15 @@ if [ -e /proc/$qbittorrentpid ]; then
 			if [ "0" == "$?" ]; then
 				return_code=0
 				break;
+			else
+				echo "[WARNING] Failed to ping $i, failures is $failures" | ts '%Y-%m-%d %H:%M:%.S'
 			fi
 		done
 		# if any of the hosts were successful, then there isn't a failure
 		if [[ "${return_code}" -ne 0 ]]; then
 			# if all hosts failed, it is considered a failure
 			failures=$(($failures + 1));
+			echo "[INFO] $failures of $HEALTH_CHECK_FAILURES have occurred." | ts '%Y-%m-%d %H:%M:%.S'
 			if [ "$failures" -eq "$HEALTH_CHECK_FAILURES" ]; then
 				if [[ ! -z "${VPN_CONF_SWITCH}" && "${VPN_CONF_SWITCH,,}" != "0" && "${VPN_CONF_SWITCH,,}" != "false" && "${VPN_CONF_SWITCH,,}" != "no" && -f "/scripts/vpn_conf_switch.sh" ]]; then
 					/scripts/vpn_conf_switch.sh "${VPN_TYPE}"
