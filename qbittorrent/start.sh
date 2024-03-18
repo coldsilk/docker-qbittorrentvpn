@@ -123,20 +123,39 @@ if [ -e /proc/$qbittorrentpid ]; then
 
 	# Set some variables that are used
 	HOST=${HEALTH_CHECK_HOST}
-	DEFAULT_HOST="one.one.one.one"
+	DEFAULT_HOST="one.one.one.one,8.8.8.8"
 	INTERVAL=${HEALTH_CHECK_INTERVAL}
-	DEFAULT_INTERVAL=300
-	DEFAULT_HEALTH_CHECK_AMOUNT=1
+	DEFAULT_INTERVAL=30
+	DEFAULT_HEALTH_CHECK_AMOUNT=3
+	DEFAULT_HEALTH_CHECK_FAILURES=3
 
 	# If host is zero (not set) default it to the DEFAULT_HOST variable
 	if [[ -z "${HOST}" ]]; then
-		echo "[INFO] HEALTH_CHECK_HOST is not set. For now using default host ${DEFAULT_HOST}" | ts '%Y-%m-%d %H:%M:%.S'
+		echo "[INFO] HEALTH_CHECK_HOST is not set. Using default host ${DEFAULT_HOST}" | ts '%Y-%m-%d %H:%M:%.S'
 		HOST=${DEFAULT_HOST}
+	fi
+
+	# split the hosts into an array
+	local _temp=()
+	local _hosts=()
+	IFS=',' read -r -a _temp <<< "$HOST"
+	for i in "${_temp[@]}"; do
+		if [ "$i" != "" ]; then _hosts+=("$i"); fi
+	done
+	if [ "0" == "${#_hosts[@]}" ]; then
+		echo "No hosts supplied, exiting." | ts '%Y-%m-%d %H:%M:%.S'
+		exit 1
+	fi
+
+	# If health check failures is set
+	if [[ -z "${HEALTH_CHECK_FAILURES}" ]]; then
+		echo "[INFO] HEALTH_CHECK_FAILURES is not set. Using $DEFAULT_HEALTH_CHECK_FAILURES" | ts '%Y-%m-%d %H:%M:%.S'
+		$HEALTH_CHECK_FAILURES=${DEFAULT_HEALTH_CHECK_FAILURES}
 	fi
 
 	# If HEALTH_CHECK_INTERVAL is zero (not set) default it to DEFAULT_INTERVAL
 	if [[ -z "${HEALTH_CHECK_INTERVAL}" ]]; then
-		echo "[INFO] HEALTH_CHECK_INTERVAL is not set. For now using default interval of ${DEFAULT_INTERVAL}" | ts '%Y-%m-%d %H:%M:%.S'
+		echo "[INFO] HEALTH_CHECK_INTERVAL is not set. Using default interval of ${DEFAULT_INTERVAL}" | ts '%Y-%m-%d %H:%M:%.S'
 		INTERVAL=${DEFAULT_INTERVAL}
 	fi
 
@@ -155,45 +174,54 @@ if [ -e /proc/$qbittorrentpid ]; then
 
 	# If HEALTH_CHECK_AMOUNT is zero (not set) default it to DEFAULT_HEALTH_CHECK_AMOUNT
 	if [[ -z ${HEALTH_CHECK_AMOUNT} ]]; then
-		echo "[INFO] HEALTH_CHECK_AMOUNT is not set. For now using default interval of ${DEFAULT_HEALTH_CHECK_AMOUNT}" | ts '%Y-%m-%d %H:%M:%.S'
+		echo "[INFO] HEALTH_CHECK_AMOUNT is not set. Using default interval of ${DEFAULT_HEALTH_CHECK_AMOUNT}" | ts '%Y-%m-%d %H:%M:%.S'
 		HEALTH_CHECK_AMOUNT=${DEFAULT_HEALTH_CHECK_AMOUNT}
 	fi
 	echo "[INFO] HEALTH_CHECK_AMOUNT is set to ${HEALTH_CHECK_AMOUNT}" | ts '%Y-%m-%d %H:%M:%.S'
 
 	failures=0;
- 	failures_max=2;
 	while true; do
 		# Ping uses both exit codes 1 and 2. Exit code 2 cannot be used for docker health checks, therefore we use this script to catch error code 2
-		ping -c ${HEALTH_CHECK_AMOUNT} $HOST > /dev/null 2>&1
-		STATUS=$?
-		if [[ "${STATUS}" -ne 0 ]]; then
-  			failures=$((failures + 1));
-     			if [ "$failures" -eq "$failures_max" ]; then 
-	  			if [[ ! -z "${VPN_CONF_SWITCH}" && "${VPN_CONF_SWITCH,,}" != "0" && "${VPN_CONF_SWITCH,,}" != "false" && "${VPN_CONF_SWITCH,,}" != "no" && -f "/scripts/vpn_conf_switch.sh" ]]; then
-				        /scripts/vpn_conf_switch.sh "${VPN_TYPE}"
+		# loop through all hosts, if any succeed, break out
+		return_code=1
+		for i in "${_hosts[@]}"; do
+			ping -c ${HEALTH_CHECK_AMOUNT} "$i" > /dev/null 2>&1
+			if [ "0" == "$?" ]; then
+				return_code=0
+				break;
+			fi
+		done
+		# if any of the hosts were successful, then there isn't a failure
+		if [[ "${return_code}" -ne 0 ]]; then
+			# if all hosts failed, it is considered a failure
+			failures=$(($failures + 1));
+			if [ "$failures" -eq "$HEALTH_CHECK_FAILURES" ]; then
+				if [[ ! -z "${VPN_CONF_SWITCH}" && "${VPN_CONF_SWITCH,,}" != "0" && "${VPN_CONF_SWITCH,,}" != "false" && "${VPN_CONF_SWITCH,,}" != "no" && -f "/scripts/vpn_conf_switch.sh" ]]; then
+					/scripts/vpn_conf_switch.sh "${VPN_TYPE}"
 				fi
 				if [[ ! -z "${VPN_DOWN_SCRIPT}" && "${VPN_DOWN_SCRIPT,,}" != "0" && "${VPN_DOWN_SCRIPT,,}" != "false" && "${VPN_DOWN_SCRIPT,,}" != "no" && -f "/config/vpn_down.sh" ]]; then
-				        /config/vpn_down.sh
+					/config/vpn_down.sh
 				fi
-	  			if [[ ! -z ${VPN_DOWN_FILE} && "${VPN_DOWN_FILE,,}" != "0" && "${VPN_DOWN_FILE,,}" != "false" && "${VPN_DOWN_FILE,,}" != "no" && ! -f "/config/vpn_down" ]]; then
-	    				date +"%s" | ts '%Y-%m-%d %H:%M:%.S' > "/config/vpn_down"
+				if [[ ! -z ${VPN_DOWN_FILE} && "${VPN_DOWN_FILE,,}" != "0" && "${VPN_DOWN_FILE,,}" != "false" && "${VPN_DOWN_FILE,,}" != "no" && ! -f "/config/vpn_down" ]]; then
+						date +"%s" | ts '%Y-%m-%d %H:%M:%.S' > "/config/vpn_down"
 				fi
 				echo "[ERROR] Network is possibly down." | ts '%Y-%m-%d %H:%M:%.S'
 				sleep 1
 				if [[ ${RESTART_CONTAINER,,} == "1" || ${RESTART_CONTAINER,,} == "true" || ${RESTART_CONTAINER,,} == "yes" ]]; then
-					echo "[INFO] Restarting container." | ts '%Y-%m-%d %H:%M:%.S'
+					echo "[INFO] Sending abort and restarting container." | ts '%Y-%m-%d %H:%M:%.S'
+					timeout -k 0 20 pkill -6 qbittorrent-nox
 					exit 1
 				fi
-    			fi
+			fi
 		else
-  			failures=0;
+			failures=0;
 			if [[ ! -z "${VPN_UP_SCRIPT}" && "${VPN_UP_SCRIPT,,}" != "0" && "${VPN_UP_SCRIPT,,}" != "false" && "${VPN_UP_SCRIPT,,}" != "no" && -f "/config/vpn_up.sh" ]]; then
 			        /config/vpn_up.sh
 			fi
 			if [[ ! -z ${VPN_DOWN_FILE} && "${VPN_DOWN_FILE,,}" != "0" && "${VPN_DOWN_FILE,,}" != "false" && "${VPN_DOWN_FILE,,}" != "no" ]]; then
     				\rm -f "/config/vpn_down" >/dev/null 2>&1
 			fi
-  		fi
+		fi
 		if [[ ${HEALTH_CHECK_SILENT,,} == "0" || ${HEALTH_CHECK_SILENT,,} == "false" || ${HEALTH_CHECK_SILENT,,} == "no" ]]; then
 			echo "[INFO] Network is up" | ts '%Y-%m-%d %H:%M:%.S'
 		fi
