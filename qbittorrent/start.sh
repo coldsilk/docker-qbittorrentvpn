@@ -116,7 +116,7 @@ qbittorrentpid=$(cat /var/run/qbittorrent.pid)
 
 # If the process exists, make sure that the log file has the proper rights and start the health check
 if [ -e /proc/$qbittorrentpid ]; then
-	echo "[INFO] qBittorrent PID: $qbittorrentpid" | ts '%Y-%m-%d %H:%M:%.S'
+	# echo "[INFO] qBittorrent PID: $qbittorrentpid" | ts '%Y-%m-%d %H:%M:%.S'
 
 	# trap the TERM signal for propagation and graceful shutdowns
 	handle_term() {
