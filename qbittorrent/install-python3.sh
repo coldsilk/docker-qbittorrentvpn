@@ -6,7 +6,8 @@ install_python3() {
 		if [ "" != "$1" ] && [[ $1 =~ ^[0-9]+$ ]]; then timeout_value=$1; fi
 		echo ""
 		echo "[INFO] Python3 not yet installed, installing..." | ts '%Y-%m-%d %H:%M:%.S'
-		# without sleep, apt update may fail to connect when using OpenVPN (maybe wireguard too), not sure why yet
+		echo ""
+  		# without sleep, apt update may fail to connect when using OpenVPN (maybe wireguard too), not sure why yet
 		sleep 5
 		echo ""
 		echo "[WARNING] command \"apt update\" will TIMEOUT in $timeout_value seconds." | ts '%Y-%m-%d %H:%M:%.S'
