@@ -107,16 +107,13 @@ echo "[INFO] Starting qBittorrent daemon..." | ts '%Y-%m-%d %H:%M:%.S'
 /bin/bash /etc/qbittorrent/qbittorrent.init start &
 chmod -R 755 /config/qBittorrent
 
-# The below is incorrect, $qbittorrentpid becomes the PID of the "/bin/bash"
-# that spawns qbittorrent. So, you cannot use it to kill qbittorrent.
-# WRONG -> "wait for the qbittorrent.init script to finish and grab the qbittorrent pid
-# from the file created by the start script" [sic]
-wait $! # technially the /bin/bash PID, not qbittorrent's PID
-qbittorrentpid=$(cat /var/run/qbittorrent.pid)
+# wait for the qbittorrent.init script to finish and grab the qbittorrent pid
+wait $!
+qbittorrentpid=$(pidof qbittorrent-nox)
 
 # If the process exists, make sure that the log file has the proper rights and start the health check
 if [ -e /proc/$qbittorrentpid ]; then
-	# echo "[INFO] qBittorrent PID: $qbittorrentpid" | ts '%Y-%m-%d %H:%M:%.S'
+	echo "[INFO] qBittorrent PID: $qbittorrentpid" | ts '%Y-%m-%d %H:%M:%.S'
 
 	# trap the TERM signal for propagation and graceful shutdowns
 	handle_term() {
@@ -139,7 +136,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 
 	# If host is zero (not set) default it to the DEFAULT_HOST variable
 	if [[ -z "${HOST}" ]]; then
-		echo "[INFO] HEALTH_CHECK_HOST is not set. Using default host ${DEFAULT_HOST}" | ts '%Y-%m-%d %H:%M:%.S'
+		echo "[INFO] HEALTH_CHECK_HOST is not set, using default host ${DEFAULT_HOST}" | ts '%Y-%m-%d %H:%M:%.S'
 		HOST=${DEFAULT_HOST}
 	fi
 
@@ -152,6 +149,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 	done
 	if [ "0" == "${#_hosts[@]}" ]; then
 		echo "[ERROR] No hosts supplied, exiting." | ts '%Y-%m-%d %H:%M:%.S'
+		sleep 3
 		exit 1
 	fi
 
@@ -163,7 +161,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 
 	# If HEALTH_CHECK_INTERVAL is zero (not set) default it to DEFAULT_INTERVAL
 	if [[ -z "${HEALTH_CHECK_INTERVAL}" ]]; then
-		echo "[INFO] HEALTH_CHECK_INTERVAL is not set. Using default interval of ${DEFAULT_INTERVAL}" | ts '%Y-%m-%d %H:%M:%.S'
+		echo "[INFO] HEALTH_CHECK_INTERVAL is not set, using default interval of ${DEFAULT_INTERVAL}." | ts '%Y-%m-%d %H:%M:%.S'
 		INTERVAL=${DEFAULT_INTERVAL}
 	fi
 
@@ -182,10 +180,10 @@ if [ -e /proc/$qbittorrentpid ]; then
 
 	# If HEALTH_CHECK_AMOUNT is zero (not set) default it to DEFAULT_HEALTH_CHECK_AMOUNT
 	if [[ -z ${HEALTH_CHECK_AMOUNT} ]]; then
-		echo "[INFO] HEALTH_CHECK_AMOUNT is not set. Using default interval of ${DEFAULT_HEALTH_CHECK_AMOUNT}" | ts '%Y-%m-%d %H:%M:%.S'
+		echo "[INFO] HEALTH_CHECK_AMOUNT is not set, using default interval of ${DEFAULT_HEALTH_CHECK_AMOUNT}." | ts '%Y-%m-%d %H:%M:%.S'
 		HEALTH_CHECK_AMOUNT=${DEFAULT_HEALTH_CHECK_AMOUNT}
 	fi
-	echo "[INFO] HEALTH_CHECK_AMOUNT is set to ${HEALTH_CHECK_AMOUNT}" | ts '%Y-%m-%d %H:%M:%.S'
+	echo "[INFO] HEALTH_CHECK_AMOUNT is set to ${HEALTH_CHECK_AMOUNT}." | ts '%Y-%m-%d %H:%M:%.S'
 
 	# If you expect the torrent search in qbittorrent to work, then you need python3
 	if [[ $INSTALL_PYTHON3 == "1" || $INSTALL_PYTHON3 == "true" || $INSTALL_PYTHON3 == "yes" ]]; then
@@ -211,7 +209,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 				return_code=0
 				break;
 			else
-				echo "[WARNING] Failed to ping $i, failures is $failures" | ts '%Y-%m-%d %H:%M:%.S'
+				echo "[WARNING] Failed to ping $i. Failures is $failures of $HEALTH_CHECK_FAILURES." | ts '%Y-%m-%d %H:%M:%.S'
 			fi
 		done
 		# if any of the hosts were successful, then there isn't a failure
