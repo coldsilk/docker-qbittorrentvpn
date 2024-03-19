@@ -220,7 +220,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 		if [[ "${return_code}" -ne 0 ]]; then
 			# if all hosts failed, it is considered a failure
 			failures=$(($failures + 1));
-			echo "[INFO] $failures of $HEALTH_CHECK_FAILURES have occurred." | ts '%Y-%m-%d %H:%M:%.S'
+			echo "[INFO] $failures of $HEALTH_CHECK_FAILURES internet check failures have occurred." | ts '%Y-%m-%d %H:%M:%.S'
 			if [ "$failures" -eq "$HEALTH_CHECK_FAILURES" ]; then
 				if [[ ! -z "${VPN_CONF_SWITCH}" && "${VPN_CONF_SWITCH,,}" != "0" && "${VPN_CONF_SWITCH,,}" != "false" && "${VPN_CONF_SWITCH,,}" != "no" && -f "/scripts/vpn_conf_switch.sh" ]]; then
 					/scripts/vpn_conf_switch.sh "${VPN_TYPE}"
