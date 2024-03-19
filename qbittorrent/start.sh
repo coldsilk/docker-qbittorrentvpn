@@ -156,7 +156,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 		sleep 3
 		exit 1
 	fi
-
+	echo "[INFO] Health check host(s) are ${_hosts[@]}" | ts '%Y-%m-%d %H:%M:%.S'
 	# If health check failures is set
 	if [[ -z "${HEALTH_CHECK_FAILURES}" ]]; then
 		echo "[INFO] HEALTH_CHECK_FAILURES is not set, using $DEFAULT_HEALTH_CHECK_FAILURES." | ts '%Y-%m-%d %H:%M:%.S'
