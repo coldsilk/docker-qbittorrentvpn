@@ -19,8 +19,12 @@ if [ ! -e /config/qBittorrent/config/qBittorrent.conf ]; then
 fi
 
 # add some convenience links and aliases to install python easier
-ln /etc/qbittorrent/install-python3.sh /usr/local/sbin/installpython
-ln /etc/qbittorrent/install-python3.sh /usr/local/sbin/installpython3
+if [ ! -f "/usr/local/sbin/installpython" ]; then
+	ln /etc/qbittorrent/install-python3.sh /usr/local/sbin/installpython
+fi
+if [ ! -f "/usr/local/sbin/installpython3" ]; then
+	ln /etc/qbittorrent/install-python3.sh /usr/local/sbin/installpython3
+fi
 alias installpython="/etc/qbittorrent/install-python3.sh"
 alias installpython3="/etc/qbittorrent/install-python3.sh"
 export INSTALL_PYTHON3=$(echo "${INSTALL_PYTHON3,,}")
