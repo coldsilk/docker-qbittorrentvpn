@@ -158,6 +158,7 @@ RUN apt update \
     pkg-config \
     qtbase5-dev \
     qttools5-dev \
+    qtbase5-private-dev \
     zlib1g-dev \
     && apt-get clean \
     && apt --purge autoremove -y \
