@@ -87,7 +87,7 @@ $ docker run -d \
 |`VPN_UP_SCRIPT` | No | On health check success, run "/confing/vpn_up.sh" | VPN_UP_SCRIPT=yes | no
 |`VPN_CONF_SWITCH` | No | On health check failure, run bundled conf switch script (read below) | VPN_CONF_SWITCH=yes | yes
 |`VPN_CONF_SWITCH_OPENVPN_AT_START` | No | Restart OpenVPN with a new conf after n seconds | VPN_CONF_SWITCH_OPENVPN_AT_START=30 | 30 seconds
-|`WG_CONF_IPV4_ONLY` | yes | Remove all invalid ipv4 addresses from the lines "Address=", "DNS=", "AllowedIPs=" and "Endpoint=" in wg0.conf | WG_CONF_IPV4_ONLY=1 | Enabled (WG_CONF_IPV4_ONLY=1)
+|`WG_CONF_IPV4_ONLY` | no | Remove all invalid ipv4 addresses from the lines "Address=", "DNS=", "AllowedIPs=" and "Endpoint=" in wg0.conf | WG_CONF_IPV4_ONLY=1 | Enabled (WG_CONF_IPV4_ONLY=1)
 
 ## Volumes
 | Volume | Required | Function | Example |
