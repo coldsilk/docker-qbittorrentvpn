@@ -132,7 +132,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 
 	# Set some variables that are used
 	HOST=${HEALTH_CHECK_HOST}
-	DEFAULT_HOST="one.one.one.one,8.8.8.8"
+	DEFAULT_HOST="1.1.1.1,8.8.8.8"
 	INTERVAL=${HEALTH_CHECK_INTERVAL}
 	DEFAULT_INTERVAL=30
 	DEFAULT_HEALTH_CHECK_AMOUNT=3
@@ -140,7 +140,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 
 	# If host is zero (not set) default it to the DEFAULT_HOST variable
 	if [[ -z "${HOST}" ]]; then
-		echo "[INFO] HEALTH_CHECK_HOST is not set, using default host ${DEFAULT_HOST}" | ts '%Y-%m-%d %H:%M:%.S'
+		echo "[INFO] HEALTH_CHECK_HOST is not set, using default host(s) ${DEFAULT_HOST}" | ts '%Y-%m-%d %H:%M:%.S'
 		HOST=${DEFAULT_HOST}
 	fi
 
@@ -156,7 +156,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 		sleep 3
 		exit 1
 	fi
-	echo "[INFO] Health check host(s) are ${_hosts[@]}" | ts '%Y-%m-%d %H:%M:%.S'
+	echo "[INFO] Health Check Host(s) are ${_hosts[@]}" | ts '%Y-%m-%d %H:%M:%.S'
 	# If health check failures is set
 	if [[ -z "${HEALTH_CHECK_FAILURES}" ]]; then
 		echo "[INFO] HEALTH_CHECK_FAILURES is not set, using $DEFAULT_HEALTH_CHECK_FAILURES." | ts '%Y-%m-%d %H:%M:%.S'
