@@ -46,11 +46,11 @@ if [[ "${VPN_CONF_SWITCH_OPENVPN_AT_START}" != "0" && "${VPN_CONF_SWITCH_OPENVPN
  	echo "[INFO] VPN_CONF_SWITCH_OPENVPN_AT_START is enabled and set to ${VPN_CONF_SWITCH_OPENVPN_AT_START}" | ts '%Y-%m-%d %H:%M:%.S'
 fi
 
-if [[ ! -z "${WG_CONF_IPV4_ONLY}" ]]; then
-	echo "[INFO] WG_CONF_IPV4_ONLY is set to ${WG_CONF_IPV4_ONLY}" | ts '%Y-%m-%d %H:%M:%.S'
-else
+if [[ -z "${WG_CONF_IPV4_ONLY}" ]]; then
 	export WG_CONF_IPV4_ONLY=1
 fi
+echo "[INFO] WG_CONF_IPV4_ONLY is set to ${WG_CONF_IPV4_ONLY}" | ts '%Y-%m-%d %H:%M:%.S'
+
 if [[ ! -z "${VPN_DOWN_FILE}" ]]; then
 	echo "[INFO] VPN_DOWN_FILE is set to ${VPN_DOWN_FILE}" | ts '%Y-%m-%d %H:%M:%.S'
 fi
