@@ -87,6 +87,7 @@ $ docker run -d \
 |`VPN_UP_SCRIPT` | No | On health check success, run "/confing/vpn_up.sh" | VPN_UP_SCRIPT=yes | no
 |`VPN_CONF_SWITCH` | No | On health check failure, run bundled conf switch script (read below) | VPN_CONF_SWITCH=yes | yes
 |`VPN_CONF_SWITCH_OPENVPN_AT_START` | No | Restart OpenVPN with a new conf after n seconds | VPN_CONF_SWITCH_OPENVPN_AT_START=30 | 30 seconds
+|`WG_CONF_IPV4_ONLY` | yes | Remove all invalid ipv4 addresses from the lines "Address=", "DNS=", "AllowedIPs=" and "Endpoint=" in wg0.conf | WG_CONF_IPV4_ONLY=1 | Enabled (WG_CONF_IPV4_ONLY=1)
 
 ## Volumes
 | Volume | Required | Function | Example |
@@ -115,6 +116,7 @@ Access https://IPADDRESS:PORT from a browser on the same network. For example: h
 The container will fail to boot if `VPN_ENABLED` is set and there is no valid .conf file present in the /config/wireguard directory. Drop a .conf file from your VPN provider into /config/wireguard and start the container again. The file must have the name `wg0.conf`, or it will fail to start.
 
 ## WireGuard IPv6 issues
+By default WG_CONF_IPV4_ONLY=1 which removes all invalid ipv4 address from the 4 lines "Address=", "DNS=", "AllowedIPs=" and "Endpoint=" so it must be set to anything other than 1 to use ipv6, eg. WG_CONF_IPV4_ONLY=0.
 If you use WireGuard and also have IPv6 enabled, it is necessary to add the IPv6 range to the `LAN_NETWORK` environment variable.  
 Additionally the parameter `--sysctl net.ipv6.conf.all.disable_ipv6=0` also must be added to the `docker run` command, or to the "Extra Parameters" in Unraid.  
 The full Unraid `Extra Parameters` would be: `--restart unless-stopped --sysctl net.ipv6.conf.all.disable_ipv6=0"`  
