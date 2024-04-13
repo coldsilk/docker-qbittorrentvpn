@@ -20,6 +20,7 @@ Docker container which runs the latest [qBittorrent](https://github.com/qbittorr
 * Configurable UID and GID for config files and /downloads for qBittorrent
 * Created with [Unraid](https://unraid.net/) in mind
 * BitTorrent port 8999 exposed by default
+* Optional Python3 install. Python3 is required for the torrent search feature.
 
 ## Run container from Docker registry
 The container is available from the Docker registry and this is the simplest way to get it  
@@ -31,6 +32,7 @@ $ docker run  -d \
               -v /your/downloads/path/:/downloads \
               -e "VPN_TYPE=wireguard" \
               -e "LAN_NETWORK=192.168.0.0/16" \
+              -e "INSTALL_PYTHON3=yes" \
               -e "QBT_WEBUI_PORT=8080" \
               -p 8080:8080 \
               `# 8999 default host port for torrents, but it can be any port` \
