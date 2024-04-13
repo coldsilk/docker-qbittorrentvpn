@@ -19,7 +19,7 @@ Docker container which runs the latest [qBittorrent](https://github.com/qbittorr
 * IP tables killswitch to prevent IP leaking when VPN connection fails
 * Configurable UID and GID for config files and /downloads for qBittorrent
 * Created with [Unraid](https://unraid.net/) in mind
-* BitTorrent port 8999 exposed by default
+* BitTorrent port 8999 exposed internally by default
 * Optional Python3 install. Python3 is required for the torrent search feature.
 
 ## Run container from Docker registry
@@ -122,7 +122,7 @@ Access https://IPADDRESS:PORT from a browser on the same network. For example: h
 The container will fail to boot if `VPN_ENABLED` is set and there is no valid .conf file present in the /config/wireguard directory. Drop a .conf file from your VPN provider into /config/wireguard and start the container again. The file must have the name `wg0.conf`, or it will fail to start.
 
 ## WireGuard IPv6 issues
-By default WG_CONF_IPV4_ONLY=1 which removes all invalid ipv4 address from the 4 lines "Address=", "DNS=", "AllowedIPs=" and "Endpoint=" so it must be set to anything other than 1 to use ipv6, eg. WG_CONF_IPV4_ONLY=0.  
+By default WG_CONF_IPV4_ONLY=1 which removes all invalid ipv4 addresses from the 4 lines beginning with "Address=", "DNS=", "AllowedIPs=" and "Endpoint=". It must be set to anything other than 1 to use ipv6, eg. WG_CONF_IPV4_ONLY=0.  
 If you use WireGuard and also have IPv6 enabled, it is necessary to add the IPv6 range to the `LAN_NETWORK` environment variable.  
 Additionally the parameter `--sysctl net.ipv6.conf.all.disable_ipv6=0` also must be added to the `docker run` command, or to the "Extra Parameters" in Unraid.  
 The full Unraid `Extra Parameters` would be: `--restart unless-stopped --sysctl net.ipv6.conf.all.disable_ipv6=0"`  
