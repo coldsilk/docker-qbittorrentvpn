@@ -126,7 +126,7 @@ if [ -e /proc/$qbittorrentpid ]; then
   		start-stop-daemon --stop --signal 6 --verbose --pid $qbittorrentpid --retry=ABRT/30/KILL/5
 		exit $?
 	}
-	trap handle_term SIGTERM
+	trap handle_term SIGTERM SIGABRT SIGINT SIGQUIT
 	if [[ -e /config/qBittorrent/data/logs/qbittorrent.log ]]; then
 		chmod 775 /config/qBittorrent/data/logs/qbittorrent.log
 	fi
