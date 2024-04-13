@@ -246,11 +246,9 @@ if [ -e /proc/$qbittorrentpid ]; then
 						date +"%s" | ts '%Y-%m-%d %H:%M:%.S' > "/config/vpn_down"
 				fi
 				echo "[ERROR] Network is possibly down." | ts '%Y-%m-%d %H:%M:%.S'
-				sleep 1
 				if [[ ${RESTART_CONTAINER,,} == "1" || ${RESTART_CONTAINER,,} == "true" || ${RESTART_CONTAINER,,} == "yes" ]]; then
-					echo "[INFO] Sending abort and restarting container." | ts '%Y-%m-%d %H:%M:%.S'
-					timeout -k 0 20 pkill -6 qbittorrent-nox
-					exit 1
+					echo "[INFO] Restarting container." | ts '%Y-%m-%d %H:%M:%.S'
+					kill -6 $$
 				fi
 			fi
 		else
