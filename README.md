@@ -29,10 +29,13 @@ To run the container use this command, with additional parameters, please refer 
 $ docker run  -d \
               -v /your/config/path/:/config \
               -v /your/downloads/path/:/downloads \
-              -e "VPN_ENABLED=yes" \
               -e "VPN_TYPE=wireguard" \
               -e "LAN_NETWORK=192.168.0.0/16" \
+              -e "QBT_WEBUI_PORT=8080" \
               -p 8080:8080 \
+              `# 8999 default host port for torrents, but it can be any port` \
+              -p 8999:8999 \
+              -p 8999:8999/udp \
               --cap-add NET_ADMIN \
               --sysctl "net.ipv4.conf.all.src_valid_mark=1" \
               --restart unless-stopped \
@@ -65,6 +68,7 @@ $ docker run -d \
 |----------|----------|----------|----------|----------|
 |`VPN_ENABLED`| Yes | Enable VPN (yes/no)?|`VPN_ENABLED=yes`|`yes`|
 |`VPN_TYPE`| Yes | WireGuard or OpenVPN (wireguard/openvpn)?|`VPN_TYPE=wireguard`|`openvpn`|
+|`QBT_WEBUI_PORT`| No | Sets the WebUI port for qBittorrent|`QBT_WEBUI_PORT=8080`|`8080`|
 |`VPN_USERNAME`| No | If username and password provided, configures ovpn file automatically |`VPN_USERNAME=ad8f64c02a2de`||
 |`VPN_PASSWORD`| No | If username and password provided, configures ovpn file automatically |`VPN_PASSWORD=ac98df79ed7fb`||
 |`LAN_NETWORK`| Yes (at least one) | Comma delimited local Network's with CIDR notation |`LAN_NETWORK=192.168.0.0/24,10.10.0.0/24`||
@@ -74,7 +78,7 @@ $ docker run -d \
 |`PUID`| No | UID applied to /config files and /downloads |`PUID=99`|`99`|
 |`PGID`| No | GID applied to /config files and /downloads  |`PGID=100`|`100`|
 |`UMASK`| No | |`UMASK=002`|`002`|
-|`HEALTH_CHECK_HOST`| Yes (at least one) |The host(s) used to check for an active connection, it can be a comma seperated list|`HEALTH_CHECK_HOST=one.one.one.one,8.8.8.8`|`one.one.one.one,8.8.8.8`|
+|`HEALTH_CHECK_HOST`| Yes (at least one) |The host(s) used to check for an active connection, it can be a comma seperated list|`HEALTH_CHECK_HOST=1.1.1.1,8.8.8.8`|`1.1.1.1,8.8.8.8`|
 |`HEALTH_CHECK_INTERVAL`| No |This is the time in seconds that the container waits to see if the internet connection still works (check if VPN died)|`HEALTH_CHECK_INTERVAL=30`|`30`|
 | `HEALTH_CHECK_FAILURES`| No |The amount of intervals that have to fail before a restart can happen. If HEALTH_CHECK_INTERVAL=30 and this is 3, then ~90 seconds (+ ping time * hosts).|`HEALTH_CHECK_FAILURES=3`|`3`|
 |`HEALTH_CHECK_SILENT`| No |Set to `1` to supress the 'Network is up' message. Defaults to `1` if unset.|`HEALTH_CHECK_SILENT=1`|`1`|
