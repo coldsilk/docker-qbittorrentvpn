@@ -122,9 +122,22 @@ if [ -e /proc/$qbittorrentpid ]; then
 	# trap the TERM signal for propagation and graceful shutdowns
 	handle_term() {
 		echo "[INFO] Received SIGTERM, SIGABRT, SIGINT or SIGQUIT. Stopping..." | ts '%Y-%m-%d %H:%M:%.S'
-  		echo "[INFO] Running: start-stop-daemon --stop --signal 6 --verbose --pid $qbittorrentpid --retry=ABRT/30/KILL/5" | ts '%Y-%m-%d %H:%M:%.S'
-  		start-stop-daemon --stop --signal 6 --verbose --pid $qbittorrentpid --retry=ABRT/30/KILL/5
-		exit $?
+		webui_port="$(cat "/config/qBittorrent/config/qBittorrent.conf" | grep '^[\t ]*WebUI\\Port[\t ]*' | sed 's~^[\t ]*WebUI\\Port=[\t=\ ]*~~')"
+		if [ "$webui_port" == "" ]; then webui_port=8080; fi
+		# For this curl command to work, you must enable the option
+		# "Bypass authentication for clients on localhost"
+		# As of qBittorrent v4.6.4, it's under the "Web UI" tab
+		curl -v -d "username=&password=" 127.0.0.1:$webui_port/api/v2/app/shutdown
+		sleep 2
+		now=$(date +%s)
+		while [ "$(ps -o pid= -p $qbittorrentpid)" != "" ]; do
+  			sleep 1
+		      	if [ $(($(date +%s)-$now)) -gt 3 ]; then
+		        	timeout -k 0 5 kill -6 $qbittorrentpid;
+		        	break;
+		      	fi
+		done
+		exit 99
 	}
 	trap handle_term SIGTERM SIGABRT SIGINT SIGQUIT
 	if [[ -e /config/qBittorrent/data/logs/qbittorrent.log ]]; then
