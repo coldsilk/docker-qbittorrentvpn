@@ -121,8 +121,9 @@ if [ -e /proc/$qbittorrentpid ]; then
 
 	# trap the TERM signal for propagation and graceful shutdowns
 	handle_term() {
-		echo "[INFO] Received SIGTERM, stopping..." | ts '%Y-%m-%d %H:%M:%.S'
-		/bin/bash /etc/qbittorrent/qbittorrent.init stop
+		echo "[INFO] Received SIGTERM, SIGABRT, SIGINT or SIGQUIT. Stopping..." | ts '%Y-%m-%d %H:%M:%.S'
+  		echo "[INFO] Running: start-stop-daemon --stop --signal 6 --verbose --pid $qbittorrentpid --retry=ABRT/30/KILL/5" | ts '%Y-%m-%d %H:%M:%.S'
+  		start-stop-daemon --stop --signal 6 --verbose --pid $qbittorrentpid --retry=ABRT/30/KILL/5
 		exit $?
 	}
 	trap handle_term SIGTERM
