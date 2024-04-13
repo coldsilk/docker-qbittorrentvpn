@@ -21,6 +21,8 @@ Docker container which runs the latest [qBittorrent](https://github.com/qbittorr
 * Created with [Unraid](https://unraid.net/) in mind
 * BitTorrent port 8999 exposed internally by default
 * Optional Python3 install. Python3 is required for the torrent search feature.
+* Optional conf switcher for when a VPN goes dark or somehow bad.
+* Health check using a combination of multiple hosts and multiple failures.
 
 ## Run container from Docker registry
 The container is available from the Docker registry and this is the simplest way to get it  
@@ -82,7 +84,7 @@ $ docker run -d \
 |`UMASK`| No | |`UMASK=002`|`002`|
 |`HEALTH_CHECK_HOST`| Yes (at least one) |The host(s) used to check for an active connection, it can be a comma seperated list|`HEALTH_CHECK_HOST=1.1.1.1,8.8.8.8`|`1.1.1.1,8.8.8.8`|
 |`HEALTH_CHECK_INTERVAL`| No |This is the time in seconds that the container waits to see if the internet connection still works (check if VPN died)|`HEALTH_CHECK_INTERVAL=30`|`30`|
-| `HEALTH_CHECK_FAILURES`| No |The amount of intervals that have to fail before a restart can happen. If HEALTH_CHECK_INTERVAL=30 and this is 3, then ~90 seconds (+ ping time * hosts).|`HEALTH_CHECK_FAILURES=3`|`3`|
+|`HEALTH_CHECK_FAILURES`| No |The amount of intervals that have to fail before a restart can happen. If HEALTH_CHECK_INTERVAL=30 and this is 3, then ~90 seconds (+ ping time * hosts).|`HEALTH_CHECK_FAILURES=3`|`3`|
 |`HEALTH_CHECK_SILENT`| No |Set to `1` to supress the 'Network is up' message. Defaults to `1` if unset.|`HEALTH_CHECK_SILENT=1`|`1`|
 |`HEALTH_CHECK_AMOUNT`| No |The amount of pings that get send when checking for connection.|`HEALTH_CHECK_AMOUNT=3`|`3`|
 |`RESTART_CONTAINER`| No |Set to `no` to **disable** the automatic restart when the network is possibly down.|`RESTART_CONTAINER=yes`|`yes`|
