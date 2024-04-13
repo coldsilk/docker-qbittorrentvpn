@@ -132,7 +132,7 @@ if [ -e /proc/$qbittorrentpid ]; then
 		now=$(date +%s)
 		while [ "$(ps -o pid= -p $qbittorrentpid)" != "" ]; do
   			sleep 1
-		      	if [ $(($(date +%s)-$now)) -gt 3 ]; then
+		      	if [ $(($(date +%s)-$now)) -gt 13 ]; then
 		        	timeout -k 0 5 kill -6 $qbittorrentpid;
 		        	break;
 		      	fi
