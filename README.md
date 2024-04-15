@@ -19,10 +19,7 @@ Docker container which runs the latest [qBittorrent](https://github.com/qbittorr
 * IP tables killswitch to prevent IP leaking when VPN connection fails
 * Configurable UID and GID for config files and /downloads for qBittorrent
 * Created with [Unraid](https://unraid.net/) in mind
-* BitTorrent port 8999 exposed internally by default
-* Optional Python3 install. Python3 is required for the torrent search feature.
-* Optional conf switcher for when a VPN goes dark or somehow bad.
-* Health check using a combination of multiple hosts and multiple failures.
+* BitTorrent port 8999 exposed by default
 
 ## Run container from Docker registry
 The container is available from the Docker registry and this is the simplest way to get it  
@@ -34,10 +31,11 @@ $ docker run  -d \
               -v /your/downloads/path/:/downloads \
               -e "VPN_TYPE=wireguard" \
               -e "LAN_NETWORK=192.168.0.0/16" \
-              -e "INSTALL_PYTHON3=yes" \
+              `# 8080 default host port for webui, but it can be changed` \
               -e "QBT_WEBUI_PORT=8080" \
               -p 8080:8080 \
-              `# 8999 default host port for torrents, but it can be any port` \
+              `# 8999 default host port for torrents, but it can be changed` \
+              -e "TORRENT_PORT=8999" \
               -p 8999:8999 \
               -p 8999:8999/udp \
               --cap-add NET_ADMIN \
@@ -73,18 +71,20 @@ $ docker run -d \
 |`VPN_ENABLED`| Yes | Enable VPN (yes/no)?|`VPN_ENABLED=yes`|`yes`|
 |`VPN_TYPE`| Yes | WireGuard or OpenVPN (wireguard/openvpn)?|`VPN_TYPE=wireguard`|`openvpn`|
 |`QBT_WEBUI_PORT`| No | Sets the WebUI port for qBittorrent|`QBT_WEBUI_PORT=8080`|`8080`|
+|`QBT_TORRENTING_PORT`| No | Sets the torrent port for qBittorrent|`QBT_TORRENTING_PORT=8999`|`8999`|
+|`SHUTDOWN_WAIT`| No | On healtch check failures or kill -6 1, seconds to wait for qBittorent to shutdown before exiting|`SHUTDOWN_WAIT=30`|`30`|
 |`VPN_USERNAME`| No | If username and password provided, configures ovpn file automatically |`VPN_USERNAME=ad8f64c02a2de`||
 |`VPN_PASSWORD`| No | If username and password provided, configures ovpn file automatically |`VPN_PASSWORD=ac98df79ed7fb`||
 |`LAN_NETWORK`| Yes (at least one) | Comma delimited local Network's with CIDR notation |`LAN_NETWORK=192.168.0.0/24,10.10.0.0/24`||
 |`LEGACY_IPTABLES`| No | Use `iptables (legacy)` instead of `iptables (nf_tables)` |`LEGACY_IPTABLES=yes`||
 |`ENABLE_SSL`| No | Let the container handle SSL (yes/no)? |`ENABLE_SSL=yes`|`yes`|
-|`NAME_SERVERS`| No | Comma delimited name servers |`NAME_SERVERS=1.1.1.1,1.0.0.1`|`1.1.1.1,1.0.0.1`|
+|`NAME_SERVERS`| No | Comma delimited name servers |`NAME_SERVERS=37.235.1.174,1.1.1.1`|`37.235.1.174,84.200.69.80,1.1.1.1,84.200.70.40,1.0.0.1,37.235.1.177`|
 |`PUID`| No | UID applied to /config files and /downloads |`PUID=99`|`99`|
 |`PGID`| No | GID applied to /config files and /downloads  |`PGID=100`|`100`|
 |`UMASK`| No | |`UMASK=002`|`002`|
-|`HEALTH_CHECK_HOST`| Yes (at least one) |The host(s) used to check for an active connection, it can be a comma seperated list|`HEALTH_CHECK_HOST=1.1.1.1,8.8.8.8`|`1.1.1.1,8.8.8.8`|
+|`HEALTH_CHECK_HOST`| Yes (at least one) |The host(s) used to check for an active connection, it can be a comma seperated list|`HEALTH_CHECK_HOST=1.1.1.1,84.200.69.80`|`1.1.1.1,84.200.69.80`|
 |`HEALTH_CHECK_INTERVAL`| No |This is the time in seconds that the container waits to see if the internet connection still works (check if VPN died)|`HEALTH_CHECK_INTERVAL=30`|`30`|
-|`HEALTH_CHECK_FAILURES`| No |The amount of intervals that have to fail before a restart can happen. If HEALTH_CHECK_INTERVAL=30 and this is 3, then ~90 seconds (+ ping time * hosts).|`HEALTH_CHECK_FAILURES=3`|`3`|
+| `HEALTH_CHECK_FAILURES`| No |The amount of intervals that have to fail before a restart can happen. If HEALTH_CHECK_INTERVAL=30 and this is 3, then ~90 seconds (+ ping time * hosts).|`HEALTH_CHECK_FAILURES=3`|`3`|
 |`HEALTH_CHECK_SILENT`| No |Set to `1` to supress the 'Network is up' message. Defaults to `1` if unset.|`HEALTH_CHECK_SILENT=1`|`1`|
 |`HEALTH_CHECK_AMOUNT`| No |The amount of pings that get send when checking for connection.|`HEALTH_CHECK_AMOUNT=3`|`3`|
 |`RESTART_CONTAINER`| No |Set to `no` to **disable** the automatic restart when the network is possibly down.|`RESTART_CONTAINER=yes`|`yes`|
@@ -95,7 +95,6 @@ $ docker run -d \
 |`VPN_UP_SCRIPT` | No | On health check success, run "/confing/vpn_up.sh" | VPN_UP_SCRIPT=yes | no
 |`VPN_CONF_SWITCH` | No | On health check failure, run bundled conf switch script (read below) | VPN_CONF_SWITCH=yes | yes
 |`VPN_CONF_SWITCH_OPENVPN_AT_START` | No | Restart OpenVPN with a new conf after n seconds | VPN_CONF_SWITCH_OPENVPN_AT_START=30 | 30 seconds
-|`WG_CONF_IPV4_ONLY` | No | Remove all invalid ipv4 addresses from the lines "Address=", "DNS=", "AllowedIPs=" and "Endpoint=" in wg0.conf | WG_CONF_IPV4_ONLY=1 | Enabled (WG_CONF_IPV4_ONLY=1)
 
 ## Volumes
 | Volume | Required | Function | Example |
@@ -104,6 +103,8 @@ $ docker run -d \
 | `downloads` | No | Default downloads path for saving downloads | `/your/downloads/path/:/downloads`|
 
 ## Ports
+The QBT_WEBUI_PORT works but, if it's changed within qBittorrent itself, you may no longer be able to connect to the webui (the connection will probably time out).    
+# 
 | Port | Proto | Required | Function | Example |
 |----------|----------|----------|----------|----------|
 | `8080` | TCP | Yes | qBittorrent WebUI | `8080:8080`|
