@@ -30,6 +30,17 @@ if [[ ! -z "${check_network}" ]]; then
 	exit 1
 fi
 
+if [[ -z "${QBT_TORRENTING_PORT}" ]]; then
+	export QBT_TORRENTING_PORT=8999
+fi
+echo "[INFO] TORRENT_PORT is set to ${TORRENT_PORT}" | ts '%Y-%m-%d %H:%M:%.S'
+
+# if the port is changed within qBittorent itself, the WebUI might be unreachable
+if [[ -z "${QBT_WEBUI_PORT}" ]]; then
+	export QBT_WEBUI_PORT=8080
+fi
+echo "[INFO] QBT_WEBUI_PORT is set to ${QBT_WEBUI_PORT}" | ts '%Y-%m-%d %H:%M:%.S'
+
 # if "/config/${VPN_TYPE}_confs" is empty or non-existent, then functionally
 #   VPN_CONF_SWITCH and VPN_CONF_SWITCH_OPENVPN_AT_START do nothing besides print a message.
 if [[ "${VPN_CONF_SWITCH}" != "0" && "${VPN_CONF_SWITCH}" != "no" && "${VPN_CONF_SWITCH}" != "false" ]]; then
