@@ -1,4 +1,4 @@
-# [qBittorrent](https://github.com/qbittorrent/qBittorrent), WireGuard and OpenVPN
+# [qBittorrent](https://github.com/qbittorrent/qBittorrent), [WireGuard](https://www.wireguard.com/) and [OpenVPN](https://openvpn.net)
 [![Docker Pulls](https://img.shields.io/docker/pulls/coldsilk/docker-qbittorrent)](https://hub.docker.com/r/coldsilk/docker-qbittorrent)
 [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/coldsilk/docker-qbittorrent/latest)](https://hub.docker.com/r/coldsilk/docker-qbittorrent)
 
@@ -16,7 +16,7 @@ Docker container which runs the latest [qBittorrent](https://github.com/qbittorr
 * Health check can now go N ping failures to N servers before restarting [(read notes)](#notes_on_health_check)
 * Default username and password is back to admin/adminadmin
 * Option to auto-strip ipv6 addresses in wg0.conf [(read notes)](#how_wireguard)
-* Option to write a file to /config while the internet is seemingly down[(read notes)](#notes_vpn_down_file)  
+* Option to write a file to /config while the internet is seemingly down [(read notes)](#notes_vpn_down_file)  
 * Option to run a script when the health check succeeds and/or fails [(read notes)](#notes_up_down_scripts)  
 * Added a simple .bash script to send .torrents and magnets (it's copied to /config)
 * Added a reaper to restart the container if not connected by N seconds (default: 30).
