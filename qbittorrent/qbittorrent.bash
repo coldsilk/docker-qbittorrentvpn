@@ -79,8 +79,10 @@ else
 	export UMASK="002"
 fi
 
-if is_true "$QBT_SET_INTERFACE"; then
-  /etc/qbittorrent/set_interface.bash "$QBT_CONF_DIR/qBittorrent.conf"
+if is_true "$QBT_SET_INTERFACE" \
+&& ! /etc/qbittorrent/set_interface.bash "$QBT_CONF_DIR/qBittorrent.conf"; then
+  eprint "$ME: QBT_SET_INTERFACE is enabled but the interface was not set properly. Exiting."
+  exiting 1
 fi
 
 # Start qBittorrent
@@ -98,7 +100,7 @@ fi
 
 chmod -R 755 /config/qBittorrent
 
-iprint "      qBittorrent PID: $qbittorrentpid"
+iprint "      qBittorrent PID:  $qbittorrentpid"
 
 # trap for restarts and shutdown
 handle_shutdown() {
@@ -115,14 +117,14 @@ handle_shutdown() {
   IFS='=;' read -ra sid <<< $(curl -v -d "username=$_QBT_USERNAME&password=$_QBT_PASSWORD" -X POST 127.0.0.1:$webui_port/api/v2/auth/login 2>&1 | grep "SID");
   iprint "Sending: curl -v -H "Cookie: SID=${sid[1]}" -X POST 127.0.0.1:$webui_port/api/v2/app/shutdown"
   local curl_print="$(curl -v -H "Cookie: SID=${sid[1]}" -X POST 127.0.0.1:$webui_port/api/v2/app/shutdown 2>&1)"
-  echo "$curl_print"
+  printf "%s" "$curl_print"
   if ! printf "%s" "$curl_print" | grep -q "HTTP/1.1 200 OK"; then
-    # Try again but, with a different method. _QBT_USERNAME and _QBT_PASSWORD won't matter here.
-    # This method will only work if 1 of the authentication options are enabled.
+    # Try again but, with a different method. _QBT_USERNAME and _QBT_PASSWORD will not matter here.
+    # This method is for when "SID" doesn't parse and 1 of the authentication options are enabled.
     eprint "$ME: cURL failed to receive the correct response the 1st time."
     eprint "$ME: Trying a way that requires 1 of the authentication options."
     curl_print="$(curl -v -d "" 127.0.0.1:$webui_port/api/v2/app/shutdown 2>&1)"  
-    echo "$curl_print"
+    printf "%s" "$curl_print"
   fi
   # If "HTTP/1.1 200 OK" was NOT received, send SIGABRT
   if ! printf "%s" "$curl_print" | grep -q "HTTP/1.1 200 OK"; then
@@ -134,7 +136,13 @@ handle_shutdown() {
     kill -6 $qbittorrentpid &
   else
     iprint "cURL received \"HTTP/1.1 200 OK\" after sending the shutdown command."
-    iprint "If qBittorrent shuts down in under $SHUTDOWN_WAIT seconds, it should shut down cleanly."
+    iprint "qBittorrent should shut down cleanly."
+  fi
+  # If the request isn't internal, wait on $qbittorrentpid to exit, then exit.
+  if ! is_true "$internal_shutdown"; then
+    iprint "Waiting on qBittorrent ($qbittorrentpid) to exit, will say BYE when it does."
+    wait $qbittorrentpid;
+    exiting 0
   fi
   local now=$(date +%s)
   while ps -o pid= -p $qbittorrentpid > /dev/null 2>&1; do
@@ -158,27 +166,27 @@ fi
 if [ -z ${RESTART_CONTAINER} ]; then
   export RESTART_CONTAINER=1;
 fi
-iprint "    RESTART_CONTAINER: ${RESTART_CONTAINER}"
+iprint "    RESTART_CONTAINER:  ${RESTART_CONTAINER}"
 
 if [[ -z "${HEALTH_CHECK_SILENT}" ]]; then
   export HEALTH_CHECK_SILENT=1
 fi
-iprint "HEALTH_CHECK_SILENT:   ${HEALTH_CHECK_SILENT}"
+iprint "HEALTH_CHECK_SILENT:    ${HEALTH_CHECK_SILENT}"
 
 if [[ -z ${HEALTH_CHECK_AMOUNT} ]]; then
   export HEALTH_CHECK_AMOUNT=3
 fi
-iprint "HEALTH_CHECK_AMOUNT:   ${HEALTH_CHECK_AMOUNT}"
+iprint "HEALTH_CHECK_AMOUNT:    ${HEALTH_CHECK_AMOUNT}"
 
 if [[ -z "${HEALTH_CHECK_INTERVAL}" ]]; then
   export HEALTH_CHECK_INTERVAL=30
 fi
-iprint "HEALTH_CHECK_INTERVAL: ${HEALTH_CHECK_INTERVAL}"
+iprint "HEALTH_CHECK_INTERVAL:  ${HEALTH_CHECK_INTERVAL}"
 
 if [[ -z "${HEALTH_CHECK_FAILURES}" ]]; then
   export HEALTH_CHECK_FAILURES=3
 fi
-iprint "HEALTH_CHECK_FAILURES: ${HEALTH_CHECK_FAILURES}"
+iprint "HEALTH_CHECK_FAILURES:  ${HEALTH_CHECK_FAILURES}"
 
 if [[ -z "${HEALTH_CHECK_PING_TIME}" ]]; then
   export HEALTH_CHECK_PING_TIME=15
@@ -188,6 +196,22 @@ iprint "HEALTH_CHECK_PING_TIME: ${HEALTH_CHECK_PING_TIME}"
 if [[ -z "${HEALTH_CHECK_HOST}" ]]; then
   export HEALTH_CHECK_HOST="1.1.1.1,84.200.69.80"
 fi
+
+# split the hosts into an array
+IFS=',' read -r -a _temp <<< "$HEALTH_CHECK_HOST"
+for i in "${_temp[@]}"; do
+  if [ "$i" != "" ]; then _hosts+=("$i"); fi
+done
+
+if printf "%s" $HEALTH_CHECK_FAILURES | grep -q "^[0-9]\+$" \
+&& printf "%s" $HEALTH_CHECK_FAILURES | grep -q "^[0-9]\+$" \
+&& printf "%s" $HEALTH_CHECK_FAILURES | grep -q "^[0-9]\+$" \
+&& [ ${#_hosts[@]} -gt 0 ];
+then
+  iprint "       Number of hosts: ${#_hosts[@]}"
+  iprint "          Restart time: $(( HEALTH_CHECK_FAILURES * (HEALTH_CHECK_PING_TIME * ${#_hosts[@]} + HEALTH_CHECK_INTERVAL) )) seconds"
+fi
+
 iprint "HEALTH_CHECK_HOST(s): ${HEALTH_CHECK_HOST}"
 
 iprint ""
@@ -199,20 +223,15 @@ iprint "  Default Password: adminadmin"
 iprint ""
 
 if [ "$RESTART_CONTAINER" == "0" ]; then
-  wprint "Health check routine canceled."
-  iprint ""
+  wprint "RESTART_CONTAINER is set to 0. Health check routine canceled."
   sleep 2147483647 &
   wait $!
 fi
 
-# split the hosts into an array
-IFS=',' read -r -a _temp <<< "$HEALTH_CHECK_HOST"
-for i in "${_temp[@]}"; do
-  if [ "$i" != "" ]; then _hosts+=("$i"); fi
-done
 if [ "0" == "${#_hosts[@]}" ]; then
-  eprint "$ME: No Health Check Hosts supplied! Exiting."
-  exiting 1
+  eprint "$ME: No Health Check Hosts supplied! Health check routine canceled."
+  sleep 2147483647 &
+  wait $!
 fi
 
 iprint "  Beginning health check."
@@ -251,6 +270,7 @@ while true; do
           /scripts/vpn_conf_switch.bash "${VPN_TYPE}" "${CONFIG_DIR}"
         fi
         eprint "$ME: Network is seemingly down, restarting container."
+        export internal_shutdown=1;
         exiting 0
       fi
     fi
