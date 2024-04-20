@@ -16,7 +16,7 @@ is_true() {
 
 # Wait until the tunnel is up, hopefully before $REAP_WAIT.
 while : ; do
-	tunnelstat=$(netstat -ie | grep -E "tun|tap|wg")
+	tunnelstat=$(netstat -ie | grep "tun\|tap\|wg")
 	if [[ ! -z "${tunnelstat}" ]]; then
 		iprint "Connection found, killing reaper ($REAPER_PID)"
 		kill -9 $REAPER_PID
