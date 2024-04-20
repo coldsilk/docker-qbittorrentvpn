@@ -136,7 +136,7 @@ $ docker run -d \
 |`HEALTH_CHECK_SILENT` | No | Set to 1 to supress the 'Network is up' message. | `HEALTH_CHECK_SILENT=1`
 |`RESTART_CONTAINER` | No | Set to 0 to **disable** the automatic restart when the network is possibly down. | `RESTART_CONTAINER=1`
 |`ADDITIONAL_PORTS` | No | List to allow via iptables. Comma delimited. | `ADDITIONAL_PORTS=(empty)`
-|`VPN_DOWN_FILE` | No | On health check failure, writes "/config/vpn_down". | `VPN_DOWN_FILE=0`
+|`VPN_DOWN_FILE` | No | On health check failure, appends to "/config/vpn_down" file. [(read notes)](#notes_vpn_down_file) | `VPN_DOWN_FILE=2`
 |`VPN_DOWN_SCRIPT` | No | On health check failure, run "/config/vpn_down.sh". | `VPN_DOWN_SCRIPT=0`
 |`VPN_UP_SCRIPT` | No | On health check success, run "/confing/vpn_up.sh". | `VPN_UP_SCRIPT=0`
 
@@ -252,13 +252,13 @@ For every host supplied, a ping is sent to each host __per interval__. If `HEALT
 
 Put `vpn_down.sh` and/or `vpn_up.sh` in the `/config` directory. You must make the scripts executable yourself, eg. `chmod +x /config/vpn_down.sh`. `/config/vpn_down.sh` runs every health check failure and `/config/vpn_up.sh` runs every health check success.
 
-<h2 id="notes_vpn_down_file">Notes on VPN_DOWN_FILE</h2>
+<h2 id="notes_vpn_down_file">Notes on VPN_DOWN_FILE (default: enabled)</h2>
 
-On health check failure, writes the file "`/config/vpn_down`" (no file extension). This can be an external way to observe the VPN state without root/sudo permission. It will be deleted after a successful connection. It contains a timestamp in the form of: `seconds_since_epoch %Y-%m-%d_%H:%M:%S.%4N` eg. 1713565909 2024-04-19_18:31:49.2800
+On health check failures that cause a restarts, it writes the file `/config/vpn_down` (no file extension). If set to 1, the file will be deleted after the first successful health check. If set to 2, the file won't be deleted. This can be an external way to observe the VPN state without root/sudo permission. I use it to know when to restart other containers that I have proxied to this one. It contains a timestamp in the form of: `seconds_since_epoch %Y-%m-%d_%H:%M:%S.%4N` eg. 1713565909 2024-04-19_18:31:49.2800 The write mode is append so it can also be used as a log to know how many times and when the container has been restarted.
 
 <h2 id="notes_vpn_conf_switch">Notes on VPN_CONF_SWITCH (default: enabled)</h2>
 
-Name your openvpn file "`default.ovpn`" (name required) or wireguard file "`wg0.conf`" (name required). For openvpn, put this 1 file in "`/config/openvpn/`", for wireguard "`/config/wireguard/`". Put all extra vpn confs in "`/config/openvpn_confs`", for wireguard "`/config/wireguard_confs`". On health check failure, a file from the `*_confs` directory is copied to `/config`. To disable, set VPN_CONF_SWITCH=0.
+Name your openvpn file `default.ovpn` (name required) or wireguard file `wg0.conf` (name required). For openvpn, put this 1 file in `/config/openvpn/`, for wireguard `/config/wireguard/`. Put all extra vpn confs in `/config/openvpn_confs`, for wireguard `/config/wireguard_confs`. On health check failure, a file from the `*_confs` directory is copied to `/config`. To disable, set VPN_CONF_SWITCH=0.
 
 <h2 id="notes_dns_servers">Note on the DNS servers</h2>
 
@@ -271,12 +271,12 @@ DNS.WATCH: The DNS servers are: 84.200.69.80 (IPv6: 2001:1608:10:25::1c04:b12f) 
 
 Docker will invoke spamming rules with `docker run` if the container restarts itself without running for at least 10 seconds. When the spamming rules are in effect, the time between restarts will keep getting longer and longer. I think it keeps doubling up the delay to some value that is extraordinarly high, it's many minutes.   
 
-<h3 id="credits">Credits:</h3>
+<h3 id="credits">Credits</h3>
 
 [MarkusMcNugen/docker-qBittorrentvpn](https://github.com/MarkusMcNugen/docker-qBittorrentvpn)  
-[DyonR/jackettvpn](https://github.com/DyonR/jackettvpn)  
+[DyonR](https://github.com/DyonR)  
+[binhex](https://github.com/binhex/)  
 [coldsilk/docker-qBittorrentvpn](https://github.com/coldsilk/docker-qBittorrentvpn)  
-This projects originates from MarkusMcNugen/docker-qBittorrentvpn, but forking was not possible since DyonR/jackettvpn uses the fork already.
 
 <h3 id="qbittorrent_conf">Contents of qBittorrent.conf</h3>
 
