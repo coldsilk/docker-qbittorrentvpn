@@ -21,3 +21,8 @@ alias mv='mv -i'
 
 alias myip='curl ifconfig.io'
 alias x='exit'
+alias stop='kill -6 1'
+alias installpython="/etc/qbittorrent/install_python3.sh"
+alias installpython3="/etc/qbittorrent/install_python3.sh"
+alias qconf='cat /config/qbittorrent/qBittorrent/config/qBittorrent.conf'
+alias qlog='cat /config/qbittorrent/qBittorrent/data/logs/qbittorrent.log'
