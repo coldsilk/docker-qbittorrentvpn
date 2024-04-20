@@ -262,8 +262,8 @@ while true; do
       if is_true "$VPN_DOWN_SCRIPT" && [ -f "/config/vpn_down.sh" ]; then
         source /config/vpn_down.sh
       fi
-      if is_true "$VPN_DOWN_FILE" && [ ! -f "/config/vpn_down" ]; then
-        echo "$(date +%s) $(date +"%Y-%m-%d_%H:%M:%S.%4N")" > "/config/vpn_down"
+      if is_true "$VPN_DOWN_FILE" || [[ $VPN_DOWN_FILE == 2 ]] && [ ! -f "/config/vpn_down" ]; then
+        echo "$(date +%s) $(date +"%Y-%m-%d_%H:%M:%S.%4N")" >> "/config/vpn_down"
       fi
       if is_true "$RESTART_CONTAINER"; then
         if is_true "$VPN_CONF_SWITCH" && [ -f "/scripts/vpn_conf_switch.bash" ]; then
