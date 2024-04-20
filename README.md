@@ -172,7 +172,7 @@ Access https://IPADDRESS:PORT from a browser on the same network. For example: h
 
 <h1 id="notes_shutdown">Notes on SHUTDOWN_WAIT</h1>
 
-<h3 id="curl_shutdown">Using `curl` to shutdown qBittorrent is the only way I know of to avoid loss of download data.</h3>
+<h3 id="curl_shutdown">Using `curl` to shutdown qbittorrent-nox is the only way I know of to avoid loss of download data.</h3>
 
 __Requires__: 
 1. "Bypass authentication for clients on localhost" (under the "Web UI" tab)
