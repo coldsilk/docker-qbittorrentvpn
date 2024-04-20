@@ -100,7 +100,6 @@ elif [ "wireguard" == "${VPN_TYPE}" ]; then
     sleep 1 # Just to give WireGuard a bit to go down
   fi
   if is_true "$WG_CONF_IPV4_ONLY"; then
-    source "/scripts/network.bash"
     conf_wireguard_ipv4_only "$VPN_CONFIG"
   fi
   wg-quick up "$VPN_CONFIG"
