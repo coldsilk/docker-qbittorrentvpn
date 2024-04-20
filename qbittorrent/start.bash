@@ -358,7 +358,7 @@ if is_true "$VPN_ENABLED"; then
 	fi
 
 	if [[ -z "${VPN_REMOTE}" ]]; then
-		eprint "$ME: VPN_REMOTE not found in ${VPN_CONFIG}, exiting..."
+		eprint "$ME: VPN_REMOTE not found in ${VPN_CONFIG}. Exiting."
 		exiting
 	fi
   iprint "         VPN_REMOTE: '${VPN_REMOTE}'"
@@ -370,7 +370,7 @@ if is_true "$VPN_ENABLED"; then
 	fi
 
 	if [[ -z "${VPN_PORT}" ]]; then
-		eprint "$ME: VPN_PORT not found in ${VPN_CONFIG}, exiting..."
+		eprint "$ME: VPN_PORT not found in ${VPN_CONFIG}. Exiting."
 		exiting
 	fi
   iprint "           VPN_PORT: '${VPN_PORT}'"
@@ -397,7 +397,7 @@ if is_true "$VPN_ENABLED"; then
 	if [[ "${VPN_TYPE}" == "openvpn" ]]; then
 		VPN_DEVICE_TYPE=$(cat "${VPN_CONFIG}" | grep -P -o -m 1 '(?<=^dev\s)[^\r\n\d]+' | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
 		if [[ -z "${VPN_DEVICE_TYPE}" ]]; then
-      eprint "$ME: VPN_DEVICE_TYPE not found in ${VPN_CONFIG}, exiting..."
+      eprint "$ME: VPN_DEVICE_TYPE not found in ${VPN_CONFIG}. Exiting."
 			exiting
     fi
 		export VPN_DEVICE_TYPE="${VPN_DEVICE_TYPE}0"
