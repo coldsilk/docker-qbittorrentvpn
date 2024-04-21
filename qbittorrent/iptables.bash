@@ -14,6 +14,17 @@ is_true() {
   return 1;
 }
 
+# exiting() {
+# 	# Docker wants at least 10 seconds between restarts or spam rules invoke
+#   eprint "Exiting in $(( 10-($(date +%s)-$START_TIME) )) seconds."
+#   while [ $(($(date +%s)-$START_TIME)) -lt 11 ]; do
+#     sleep 1;
+#   done
+# 	iprint "BYE"
+#   exit 1
+# }
+# trap exiting EXIT
+
 # Wait until the tunnel is up, hopefully before $REAP_WAIT.
 while : ; do
 	tunnelstat=$(netstat -ie | grep "tun\|tap\|wg")
@@ -28,21 +39,15 @@ done
 
 # identify docker bridge interface name (probably eth0)
 docker_interface=$(netstat -ie | grep -vE "lo|tun|tap|wg" | sed -n '1!p' | grep -P -o -m 1 '^[\w]+')
-if [[ "${DEBUG}" == "true" ]]; then
-	vprint "[DEBUG] Docker interface defined as ${docker_interface}"
-fi
+iprint "Docker interface defined as ${docker_interface}"
 
 # identify ip for docker bridge interface
 docker_ip=$(ifconfig "${docker_interface}" | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*")
-if [[ "${DEBUG}" == "true" ]]; then
-	vprint "[DEBUG] Docker IP defined as ${docker_ip}"
-fi
+iprint "Docker IP defined as ${docker_ip}"
 
 # identify netmask for docker bridge interface
 docker_mask=$(ifconfig "${docker_interface}" | grep -o "netmask [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*")
-if [[ "${DEBUG}" == "true" ]]; then
-	vprint "[DEBUG] Docker netmask defined as ${docker_mask}"
-fi
+iprint "Docker netmask defined as ${docker_mask}"
 
 # convert netmask into cidr format
 docker_network_cidr=$(ipcalc "${docker_ip}" "${docker_mask}" | grep -P -o -m 1 "(?<=Network:)\s+[^\s]+" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
@@ -52,10 +57,37 @@ iprint "Docker network defined as ${docker_network_cidr}"
 ###
 
 # get default gateway of interfaces as looping through them
-DEFAULT_GATEWAY=$(ip -4 route list 0/0 | cut -d ' ' -f 3)
+default_gateway=$(ip -4 route list 0/0 | cut -d ' ' -f 3)
 
 # split comma separated string into list from LAN_NETWORK env variable
 IFS=',' read -ra lan_network_list <<< "${LAN_NETWORK}"
+
+if [[ -z "$docker_interface" \
+|| -z "$docker_ip" \
+|| -z "$docker_mask" \
+|| -z "$docker_network_cidr" \
+|| -z "$default_gateway" \
+|| -z "$lan_network_list" \
+|| -z "$VPN_DEVICE_TYPE" \
+|| -z "$VPN_PROTOCOL" \
+|| -z "$VPN_PORT" \
+|| -z "$QBT_WEBUI_PORT" ]]; then
+  eprint "One of the below required network values was empty."
+  eprint "   docker_interface: $docker_interfaace"
+  eprint "          docker_ip: $docker_ip"
+  eprint "        docker_mask: $docker_mask"
+  eprint "docker_network_cidr: $docker_network_cidr"
+  eprint "    default_gateway: $default_gateway"
+  eprint "   lan_network_list: ${lan_network_list[@]}"
+  eprint "    VPN_DEVICE_TYPE: $VPN_DEVICE_TYPE"
+  eprint "       VPN_PROTOCOL: $VPN_PROTOCOL"
+  eprint "           VPN_PORT: $VPN_PORT"
+  eprint "     QBT_WEBUI_PORT: $QBT_WEBUI_PORT"
+  # exiting 1
+  exit 1
+fi
+
+set -e
 
 # process lan networks in the list
 for lan_network_item in "${lan_network_list[@]}"; do
@@ -63,7 +95,7 @@ for lan_network_item in "${lan_network_list[@]}"; do
 	lan_network_item=$(echo "${lan_network_item}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
 
 	iprint "Adding ${lan_network_item} as route via docker ${docker_interface}"
-	ip route add "${lan_network_item}" via "${DEFAULT_GATEWAY}" dev "${docker_interface}"
+	ip route add "${lan_network_item}" via "${default_gateway}" dev "${docker_interface}"
 done
 
 iprint "ip route defined as follows..."
@@ -91,7 +123,7 @@ if [[ $iptable_mangle_exit_code == 0 ]]; then
 	echo "$QBT_WEBUI_PORT    webui" >> /etc/iproute2/rt_tables
 	echo "$QBT_TORRENTING_PORT   webui" >> /etc/iproute2/rt_tables
 	ip rule add fwmark 1 table webui
-	ip route add default via ${DEFAULT_GATEWAY} table webui
+	ip route add default via ${default_gateway} table webui
 fi
 
 # input iptable rules
@@ -201,3 +233,4 @@ echo "--------------------"
 iptables -S
 echo "--------------------"
 
+set +e
