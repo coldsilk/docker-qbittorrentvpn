@@ -87,7 +87,7 @@ if [[ -z "$docker_interface" \
   exit 1
 fi
 
-set -e
+# set -e
 
 # process lan networks in the list
 for lan_network_item in "${lan_network_list[@]}"; do
@@ -233,4 +233,4 @@ echo "--------------------"
 iptables -S
 echo "--------------------"
 
-set +e
+# set +e
