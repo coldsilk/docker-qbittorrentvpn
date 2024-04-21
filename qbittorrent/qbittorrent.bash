@@ -113,18 +113,19 @@ handle_shutdown() {
   # or "Bypass authentication for clients in whitelisted IP subnets"
   # or set _QBT_USERNAME and _QBT_PASSWORD
   # As of qBittorrent v4.6.4, the 2 authentication options are under the "Web UI" tab.
+  iprint "Attempting to shutdown qBittorrent cleanly."
   iprint "Sending: curl -v -d \"username=$_QBT_USERNAME&password=$_QBT_PASSWORD\" -X POST 127.0.0.1:$webui_port/api/v2/auth/login"
   IFS='=;' read -ra sid <<< $(curl -v -d "username=$_QBT_USERNAME&password=$_QBT_PASSWORD" -X POST 127.0.0.1:$webui_port/api/v2/auth/login 2>&1 | grep "SID");
   iprint "Sending: curl -v -H "Cookie: SID=${sid[1]}" -X POST 127.0.0.1:$webui_port/api/v2/app/shutdown"
   local curl_print="$(curl -v -H "Cookie: SID=${sid[1]}" -X POST 127.0.0.1:$webui_port/api/v2/app/shutdown 2>&1)"
-  printf "%s" "$curl_print"
+  printf "%s\n" "$curl_print"
   if ! printf "%s" "$curl_print" | grep -q "HTTP/1.1 200 OK"; then
     # Try again but, with a different method. _QBT_USERNAME and _QBT_PASSWORD will not matter here.
     # This method is for when "SID" doesn't parse and 1 of the authentication options are enabled.
     eprint "$ME: cURL failed to receive the correct response the 1st time."
     eprint "$ME: Trying a way that requires 1 of the authentication options."
     curl_print="$(curl -v -d "" 127.0.0.1:$webui_port/api/v2/app/shutdown 2>&1)"  
-    printf "%s" "$curl_print"
+    printf "%s\n" "$curl_print"
   fi
   # If "HTTP/1.1 200 OK" was NOT received, send SIGABRT
   if ! printf "%s" "$curl_print" | grep -q "HTTP/1.1 200 OK"; then
@@ -136,12 +137,14 @@ handle_shutdown() {
     kill -6 $qbittorrentpid &
   else
     iprint "cURL received \"HTTP/1.1 200 OK\" after sending the shutdown command."
-    iprint "qBittorrent should shut down cleanly."
+    iprint "Shut down will be clean if time out isn't reached ($SHUTDOWN_WAIT seconds)."
   fi
   # If the request isn't internal, wait on $qbittorrentpid to exit, then exit.
   if ! is_true "$internal_shutdown"; then
     iprint "Waiting on qBittorrent ($qbittorrentpid) to exit, will say BYE when it does."
-    wait $qbittorrentpid;
+    while ps -o pid= -p $qbittorrentpid > /dev/null 2>&1; do
+      sleep 1
+    done
     exiting 0
   fi
   local now=$(date +%s)
