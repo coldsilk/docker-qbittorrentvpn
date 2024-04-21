@@ -2,7 +2,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/coldsilk/docker-qbittorrent)](https://hub.docker.com/r/coldsilk/docker-qbittorrent)
 [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/coldsilk/docker-qbittorrent/latest)](https://hub.docker.com/r/coldsilk/docker-qbittorrent)
 
-<h2 id="version">Version 1.2.2 (2024-04-19)</h2>
+<h2 id="version">Version 1.2.2 (2024-04-20)</h2>
 
 Docker container which runs the latest [qBittorrent](https://github.com/qbittorrent/qBittorrent)-nox client while connecting to WireGuard or OpenVPN with iptables killswitch to prevent IP leakage when the tunnel goes down with an automatic VPN conf switcher incase you have a free/unstable VPN.
 
