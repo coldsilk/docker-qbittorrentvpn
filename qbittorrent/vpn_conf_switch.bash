@@ -13,10 +13,9 @@ function vpn_conf_switch() (
       VPN_TYPE="${1,,}"
     CONFIG_DIR="$2"
      CONFS_DIR="$CONFIG_DIR/${VPN_TYPE}_confs"
-  CONFS_FILTER='ls -tp1 "$CONFS_DIR" | grep -v /' # eval'd
-  CONFS_FILTER="ls -tp1r | grep -v / | head -n 1"
+  # CONFS_FILTER="ls -tp1r | grep -v / | head -n 1"
             ME="$(basename "$0")"
-  echo "$CONFS_DIR::::::::::::::::$2::::::::::::::::::::::::::::::::::::::::::"
+
   if [ "$VPN_TYPE" != "openvpn" ] && [ "$VPN_TYPE" != "wireguard" ]; then
     eprint "$ME: VPN_TYPE is not \"openvpn\" or \"wireguard\": \"$VPN_TYPE\""
     return 1
