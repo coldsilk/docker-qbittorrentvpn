@@ -14,17 +14,6 @@ is_true() {
   return 1;
 }
 
-# exiting() {
-# 	# Docker wants at least 10 seconds between restarts or spam rules invoke
-#   eprint "Exiting in $(( 10-($(date +%s)-$START_TIME) )) seconds."
-#   while [ $(($(date +%s)-$START_TIME)) -lt 11 ]; do
-#     sleep 1;
-#   done
-# 	iprint "BYE"
-#   exit 1
-# }
-# trap exiting EXIT
-
 # Wait until the tunnel is up, hopefully before $REAP_WAIT.
 while : ; do
 	tunnelstat=$(netstat -ie | grep "tun\|tap\|wg")
@@ -58,9 +47,11 @@ iprint "Docker network defined as ${docker_network_cidr}"
 
 # get default gateway of interfaces as looping through them
 default_gateway=$(ip -4 route list 0/0 | cut -d ' ' -f 3)
+iprint "Default gateway defined as ${default_gateway}"
 
 # split comma separated string into list from LAN_NETWORK env variable
 IFS=',' read -ra lan_network_list <<< "${LAN_NETWORK}"
+iprint "LAN network list defined as ${lan_network_list[@]}"
 
 if [[ -z "$docker_interface" \
 || -z "$docker_ip" \
@@ -70,24 +61,24 @@ if [[ -z "$docker_interface" \
 || -z "$lan_network_list" \
 || -z "$VPN_DEVICE_TYPE" \
 || -z "$VPN_PROTOCOL" \
-|| -z "$VPN_PORT" \
-|| -z "$QBT_WEBUI_PORT" ]]; then
-  eprint "One of the below required network values was empty."
-  eprint "   docker_interface: $docker_interfaace"
-  eprint "          docker_ip: $docker_ip"
-  eprint "        docker_mask: $docker_mask"
-  eprint "docker_network_cidr: $docker_network_cidr"
-  eprint "    default_gateway: $default_gateway"
-  eprint "   lan_network_list: ${lan_network_list[@]}"
-  eprint "    VPN_DEVICE_TYPE: $VPN_DEVICE_TYPE"
-  eprint "       VPN_PROTOCOL: $VPN_PROTOCOL"
-  eprint "           VPN_PORT: $VPN_PORT"
-  eprint "     QBT_WEBUI_PORT: $QBT_WEBUI_PORT"
-  # exiting 1
+|| ! $VPN_PORT =~ ^[\ \t]*[0-9]+[\ \t]*$ \
+|| ! $QBT_WEBUI_PORT =~ ^[\ \t]*[0-9]+[\ \t]*$ \
+|| ! $QBT_TORRENTING_PORT =~ ^[\ \t]*[0-9]+[\ \t]*$ ]]; then
+  eprint "$(basename "$0"): One of the below required network values was empty or incorrect."
+  eprint "$(basename "$0"):    docker_interface: $docker_interfaace"
+  eprint "$(basename "$0"):           docker_ip: $docker_ip"
+  eprint "$(basename "$0"):         docker_mask: $docker_mask"
+  eprint "$(basename "$0"): docker_network_cidr: $docker_network_cidr"
+  eprint "$(basename "$0"):     default_gateway: $default_gateway"
+  eprint "$(basename "$0"):    lan_network_list: ${lan_network_list[@]}"
+  eprint "$(basename "$0"):     VPN_DEVICE_TYPE: $VPN_DEVICE_TYPE"
+  eprint "$(basename "$0"):        VPN_PROTOCOL: $VPN_PROTOCOL"
+  eprint "$(basename "$0"):            VPN_PORT: $VPN_PORT"
+  eprint "$(basename "$0"):      QBT_WEBUI_PORT: $QBT_WEBUI_PORT"
+  eprint "$(basename "$0"): QBT_TORRENTING_PORT: $QBT_TORRENTING_PORT"
+  printf "%s\n" "BYE"
   exit 1
 fi
-
-# set -e
 
 # process lan networks in the list
 for lan_network_item in "${lan_network_list[@]}"; do
@@ -115,16 +106,22 @@ fi
 lsmod | grep iptable_mangle
 iptable_mangle_exit_code=$?
 
+_vpn_port=$(echo "${VPN_PORT}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+_qbt_webui_port=$(echo "${QBT_WEBUI_PORT}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+_qbt_torrenting_port=$(echo "${QBT_TORRENTING_PORT}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+
 if [[ $iptable_mangle_exit_code == 0 ]]; then
 	iprint "iptable_mangle support detected, adding fwmark for tables"
 
 	# setup route for qBittorrent webui using set-mark to route
-  # traffic for $QBT_WEBUI_PORT and $TORRENT_PORT to "${docker_interface}"
-	echo "$QBT_WEBUI_PORT    webui" >> /etc/iproute2/rt_tables
-	echo "$QBT_TORRENTING_PORT   webui" >> /etc/iproute2/rt_tables
+  # traffic for $_qbt_webui_port and $_qbt_torrenting_port to "${docker_interface}"
+	echo "$_qbt_webui_port    webui" >> /etc/iproute2/rt_tables
+	echo "$_qbt_torrenting_port   webui" >> /etc/iproute2/rt_tables
 	ip rule add fwmark 1 table webui
 	ip route add default via ${default_gateway} table webui
 fi
+
+set -e
 
 # input iptable rules
 ###
@@ -142,11 +139,11 @@ iptables -A INPUT -i "${VPN_DEVICE_TYPE}" -j ACCEPT
 iptables -A INPUT -s "${docker_network_cidr}" -d "${docker_network_cidr}" -j ACCEPT
 
 # accept input to vpn gateway
-iptables -A INPUT -i "${docker_interface}" -p $VPN_PROTOCOL --sport $VPN_PORT -j ACCEPT
+iptables -A INPUT -i "${docker_interface}" -p $VPN_PROTOCOL --sport $_vpn_port -j ACCEPT
 
 # accept input to qBittorrent webui port
-iptables -A INPUT -i "${docker_interface}" -p tcp --dport $QBT_WEBUI_PORT -j ACCEPT
-iptables -A INPUT -i "${docker_interface}" -p tcp --sport $QBT_WEBUI_PORT -j ACCEPT
+iptables -A INPUT -i "${docker_interface}" -p tcp --dport $_qbt_webui_port -j ACCEPT
+iptables -A INPUT -i "${docker_interface}" -p tcp --sport $_qbt_webui_port -j ACCEPT
 
 # additional port list for scripts or container linking
 if [[ ! -z "${ADDITIONAL_PORTS}" ]]; then
@@ -189,18 +186,18 @@ iptables -A OUTPUT -o "${VPN_DEVICE_TYPE}" -j ACCEPT
 iptables -A OUTPUT -s "${docker_network_cidr}" -d "${docker_network_cidr}" -j ACCEPT
 
 # accept output from vpn gateway
-iptables -A OUTPUT -o "${docker_interface}" -p $VPN_PROTOCOL --dport $VPN_PORT -j ACCEPT
+iptables -A OUTPUT -o "${docker_interface}" -p $VPN_PROTOCOL --dport $_vpn_port -j ACCEPT
 
 # if iptable mangle is available (kernel module) then use mark
 if [[ $iptable_mangle_exit_code == 0 ]]; then
 	# accept output from qBittorrent webui port - used for external access
-	iptables -t mangle -A OUTPUT -p tcp --dport $QBT_WEBUI_PORT -j MARK --set-mark 1
-	iptables -t mangle -A OUTPUT -p tcp --sport $QBT_WEBUI_PORT -j MARK --set-mark 1
+	iptables -t mangle -A OUTPUT -p tcp --dport $_qbt_webui_port -j MARK --set-mark 1
+	iptables -t mangle -A OUTPUT -p tcp --sport $_qbt_webui_port -j MARK --set-mark 1
 fi
 
 # accept output from qBittorrent webui port - used for lan access
-iptables -A OUTPUT -o "${docker_interface}" -p tcp --dport $QBT_WEBUI_PORT -j ACCEPT
-iptables -A OUTPUT -o "${docker_interface}" -p tcp --sport $QBT_WEBUI_PORT -j ACCEPT
+iptables -A OUTPUT -o "${docker_interface}" -p tcp --dport $_qbt_webui_port -j ACCEPT
+iptables -A OUTPUT -o "${docker_interface}" -p tcp --sport $_qbt_webui_port -j ACCEPT
 
 # additional port list for scripts or container linking
 if [[ ! -z "${ADDITIONAL_PORTS}" ]]; then
@@ -228,9 +225,9 @@ iptables -A OUTPUT -p icmp --icmp-type echo-request -j ACCEPT
 # accept output from local loopback adapter
 iptables -A OUTPUT -o lo -j ACCEPT
 
-iprint "iptables defined as follows..."
+set +e
+
+iprint "iptables defined as:"
 echo "--------------------"
 iptables -S
 echo "--------------------"
-
-# set +e

@@ -34,7 +34,7 @@ conf_wireguard_ipv4_only() {
   # $1 : conf file name
   # $2->remaining : line beginnings to search for, ie "AllowedIPs"
   # $2 Default: (Address DNS AllowedIPs Endpoint)
-  if [ ! -f "$1" ]; then return 1; fi
+  if [ ! -e "$1" ]; then return 1; fi
   local conf_file="$1"
   local strings=( )
   local temp_strings=( )
@@ -60,7 +60,7 @@ conf_wireguard_ipv4_only() {
     # local line="$(cat "$conf_file" | grep "^[\t ]*$str[\t ]*=[\t ]*" | sed "s~^[\t ]*$str[\t=\ ]*~~")"
     local line="$(cat "$conf_file" | sed -n "/^[\t ]*$str[\t ]*=[\t ]*/s/^[\t ]*$str[\t ]*=[\t ]*//p")"
     if [ "" == "$line" ]; then continue; fi
-    # split the CSV into an array
+    # split the CSV into an array of addresses
     local temp=()
     IFS=',' read -t 5 -r -a temp <<< "$line"
     # if the first element equals the entire line, skip and continue
@@ -85,12 +85,11 @@ conf_wireguard_ipv4_only() {
 }
 
 if [ "openvpn" == "${VPN_TYPE}" ]; then
-  IFS=',' read -ra vpn_options <<< "${VPN_OPTIONS}"
   if is_true "$OVPN_NO_CRED_FILE"; then
-    exec openvpn --pull-filter ignore route-ipv6 --pull-filter ignore ifconfig-ipv6 \
-      --config "${VPN_CONFIG}" "${vpn_options[@]}" --auth-user-pass <(printf "%s\n%s" "$VPN_USERNAME" "$VPN_PASSWORD") &
+    exec openvpn --auth-nocache --pull-filter ignore route-ipv6 --pull-filter ignore ifconfig-ipv6 \
+      --config "${VPN_CONFIG}" ${VPN_OPTIONS} --auth-user-pass <(printf "%s\n%s" "$VPN_USERNAME" "$VPN_PASSWORD") &
   else
-    exec openvpn --pull-filter ignore route-ipv6 --pull-filter ignore ifconfig-ipv6 --config "${VPN_CONFIG}" "${vpn_options[@]}" &
+    exec openvpn --auth-nocache --pull-filter ignore route-ipv6 --pull-filter ignore ifconfig-ipv6 --config "${VPN_CONFIG}" ${VPN_OPTIONS[@]} &
   fi
 elif [ "wireguard" == "${VPN_TYPE}" ]; then
   if ip link | grep -q `basename -s .conf "$VPN_CONFIG"`; then

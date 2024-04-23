@@ -21,13 +21,25 @@ is_true() {
   return 1;
 }
 
-if [[ -z "${REAP_WAIT}" ]]; then
-  export REAP_WAIT=30
+if [[ -z "${REAPER_WAIT}" ]]; then
+  export REAPER_WAIT=30
 fi
 
 # If the VPN connects under REAPER_WAIT, the sleep process is killed.
-sleep $REAP_WAIT && kill -10 $$ &
-export REAPER_PID=$(pgrep -P $!)
+sleep $REAPER_WAIT && kill -10 $$ &
+tpid=$!
+export REAPER_PID=$(pgrep -P $tpid)
+if [[ ! $REAPER_PID =~ ^[0-9]+$ ]]; then
+  >&2 printf "%s\n" "$(date +"%Y-%m-%d_%H:%M:%S.%4N"): [ERROR]: Reaper failed to spawn."
+  ps -eax
+  if [[ $(( 10-($(date +%s)-$START_TIME) )) -gt 0 ]]; then
+  	>&2 printf "%s\n" "$(date +"%Y-%m-%d_%H:%M:%S.%4N"): [ERROR]: Exiting in $(( 10-($(date +%s)-$START_TIME) )) seconds."
+	fi
+  while [ $(($(date +%s)-$START_TIME)) -lt 11 ]; do
+    sleep 1;
+  done
+  exit 88
+fi
 
 exiting() {
 	if [ "" != "$*" ]; then
@@ -36,15 +48,18 @@ exiting() {
 			/etc/qbittorrent/vpn_conf_switch.bash "$VPN_TYPE" "$CONFIG_DIR"
 		fi
 	fi
+	if [[ $(( 10-($(date +%s)-$START_TIME) )) -gt 0 ]]; then
+  	eprint "Exiting in $(( 10-($(date +%s)-$START_TIME) )) seconds."
+	fi
 	# Docker wants at least 10 seconds between restarts or spam rules invoke
   while [ $(($(date +%s)-$START_TIME)) -lt 11 ]; do
     sleep 1;
   done
-	kill -s 9 -- -1
-	iprint "BYE"
+	kill -9 -1
+	printf "%s\n" "BYE"
   exit 1
 }
-trap "exiting Reaped! Did not connect to the VPN under $REAP_WAIT seconds, restarting." SIGUSR1
+trap "exiting Reaped! Did not connect to the VPN under $REAPER_WAIT seconds, restarting." SIGUSR1
 
 # the help needs to be written out regardless of everything
 if [ -f "/scripts/README.md" ]; then
@@ -77,111 +92,138 @@ if [[ ! -z "${check_network}" ]]; then
 	exiting
 fi
 
-iprint "Reaper ($REAPER_PID) waits $REAP_WAIT seconds before kill -10 $$."
+iprint "Reaper ($REAPER_PID) waits $REAPER_WAIT seconds before kill -10 $$."
 
-iprint "          REAP_WAIT: ${REAP_WAIT}"
+iprint "          REAPER_WAIT: ${REAPER_WAIT}"
 
-iprint "                 TZ: $TZ"
+iprint "                 TZ: '$TZ'"
 
-if [[ -z "${MOVE_CONFIGS}" ]]; then
+export MOVE_CONFIGS=$(echo "${MOVE_CONFIGS}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${MOVE_CONFIGS}" || ! $MOVE_CONFIGS =~ ^[01]$ ]]; then
   export MOVE_CONFIGS=0
 fi
 iprint "       MOVE_CONFIGS: ${MOVE_CONFIGS}"
 
-if [[ -z "${OVPN_NO_CRED_FILE}" ]]; then
+export OVPN_NO_CRED_FILE=$(echo "${OVPN_NO_CRED_FILE}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${OVPN_NO_CRED_FILE}" || ! $OVPN_NO_CRED_FILE =~ ^[01]$ ]]; then
   export OVPN_NO_CRED_FILE=0
 fi
 iprint "  OVPN_NO_CRED_FILE: ${OVPN_NO_CRED_FILE}"
 
-if [[ -z "${QBT_TORRENTING_PORT}" ]]; then
+export QBT_TORRENTING_PORT=$(echo "${QBT_TORRENTING_PORT}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${QBT_TORRENTING_PORT}" || ! $QBT_TORRENTING_PORT =~ ^[0-5]?[0-9]{0,4}$|^6[0-5][0-5][0-3][0-5]$ ]]; then
 	export QBT_TORRENTING_PORT=8999
 fi
 iprint "QBT_TORRENTING_PORT: ${QBT_TORRENTING_PORT}"
 
+export QBT_WEBUI_PORT=$(echo "${QBT_WEBUI_PORT}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
 # if the port is changed within qBittorent itself, the WebUI might be unreachable
-if [[ -z "${QBT_WEBUI_PORT}" ]]; then
+if [[ -z "${QBT_WEBUI_PORT}" || ! $QBT_WEBUI_PORT =~ ^[0-5]?[0-9]{0,4}$|^6[0-5][0-5][0-3][0-5]$ ]]; then
 	export QBT_WEBUI_PORT=8080
 fi
 iprint "     QBT_WEBUI_PORT: ${QBT_WEBUI_PORT}"
 
+export _QBT_USERNAME=$(echo "${_QBT_USERNAME}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
 if [[ -z "${_QBT_USERNAME}" ]]; then
+# _QBT_USERNAME/PASS might not be correct anymore, but it's better than nothing
 	export _QBT_USERNAME="admin"
 fi
-iprint "      _QBT_USERNAME: ${_QBT_USERNAME}"
+iprint "      _QBT_USERNAME: '${_QBT_USERNAME}'"
 
+export _QBT_PASSWORD=$(echo "${_QBT_PASSWORD}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
 if [[ -z "${_QBT_PASSWORD}" ]]; then
 	export _QBT_PASSWORD="adminadmin"
 fi
-iprint "      _QBT_PASSWORD: ${_QBT_PASSWORD}"
+iprint "      _QBT_PASSWORD: '${_QBT_PASSWORD}'"
 
-if [[ -z "${QBT_SET_INTERFACE}" ]]; then
+export QBT_SET_INTERFACE=$(echo "${QBT_SET_INTERFACE}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${QBT_SET_INTERFACE}" || ! $QBT_SET_INTERFACE =~ ^[01]$ ]]; then
 	export QBT_SET_INTERFACE=1
 fi
 iprint "  QBT_SET_INTERFACE: ${QBT_SET_INTERFACE}"
 
 # NOTE: if "/config/${VPN_TYPE}_confs" is empty or non-existent, then the
 # functionally of VPN_CONF_SWITCH does nothing besides print a message.
-if [[ -z "${VPN_CONF_SWITCH}" ]]; then
+export VPN_CONF_SWITCH=$(echo "${VPN_CONF_SWITCH}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${VPN_CONF_SWITCH}" || ! $VPN_CONF_SWITCH =~ ^[01]$ ]]; then
 	export VPN_CONF_SWITCH=1;
 fi
 iprint "    VPN_CONF_SWITCH: ${VPN_CONF_SWITCH}"
 
-if [[ -z "${WG_CONF_IPV4_ONLY}" ]]; then
+export WG_CONF_IPV4_ONLY=$(echo "${WG_CONF_IPV4_ONLY}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${WG_CONF_IPV4_ONLY}" || ! $WG_CONF_IPV4_ONLY =~ ^[01]$ ]]; then
 	export WG_CONF_IPV4_ONLY=1
 fi
 iprint "  WG_CONF_IPV4_ONLY: ${WG_CONF_IPV4_ONLY}"
 
+export WG_CONF_IPV4_LINES=$(echo "${WG_CONF_IPV4_LINES}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
 if [[ -z "${WG_CONF_IPV4_LINES}" ]]; then
 	export WG_CONF_IPV4_LINES="Address,DNS,AllowedIPs,Endpoint"
 fi
-iprint " WG_CONF_IPV4_LINES: ${WG_CONF_IPV4_LINES}"
+iprint " WG_CONF_IPV4_LINES: '${WG_CONF_IPV4_LINES}'"
 
-if [[ -z "${SHUTDOWN_WAIT}" ]]; then
+export SHUTDOWN_WAIT=$(echo "${SHUTDOWN_WAIT}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${SHUTDOWN_WAIT}" || ! $SHUTDOWN_WAIT =~ ^[0-9]+$ ]]; then
 	export  SHUTDOWN_WAIT=30
 fi
 iprint "      SHUTDOWN_WAIT: ${SHUTDOWN_WAIT}"
 
-if [[ -z "${VPN_DOWN_FILE}" ]]; then
-  export  VPN_DOWN_FILE=0
+export VPN_DOWN_FILE=$(echo "${VPN_DOWN_FILE}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${VPN_DOWN_FILE}" || ! $VPN_DOWN_FILE =~ ^[012]$ ]]; then
+  export  VPN_DOWN_FILE=2
 fi
 iprint "      VPN_DOWN_FILE: ${VPN_DOWN_FILE}"
 
-if [[ -z "${VPN_UP_SCRIPT}" ]]; then
+export VPN_UP_SCRIPT=$(echo "${VPN_UP_SCRIPT}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${VPN_UP_SCRIPT}" || ! $VPN_UP_SCRIPT =~ ^[01]$ ]]; then
   export  VPN_UP_SCRIPT=0
 fi
 iprint "      VPN_UP_SCRIPT: ${VPN_UP_SCRIPT}"
 
-if [[ -z "${VPN_DOWN_SCRIPT}" ]]; then
+export VPN_DOWN_SCRIPT=$(echo "${VPN_DOWN_SCRIPT}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${VPN_DOWN_SCRIPT}" || ! $VPN_DOWN_SCRIPT =~ ^[01]$ ]]; then
   export  VPN_DOWN_SCRIPT=0
 fi
 iprint "    VPN_DOWN_SCRIPT: ${VPN_DOWN_SCRIPT}"
 
-if [[ -z "${VPN_ENABLED}" ]]; then
+export VPN_ENABLED=$(echo "${VPN_ENABLED}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${VPN_ENABLED}" || ! $VPN_ENABLED =~ ^[01]$ ]]; then
   export VPN_ENABLED=1
 fi
 iprint "        VPN_ENABLED: ${VPN_ENABLED}"
 
-if [[ -z "${VPN_USERNAME}" ]]; then
-  export VPN_USERNAME=;
-fi
-iprint "       VPN_USERNAME: ${VPN_USERNAME}"
+export VPN_USERNAME=$(echo "${VPN_USERNAME}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+iprint "       VPN_USERNAME: '${VPN_USERNAME}'"
 
-if [[ -z "${VPN_PASSWORD}" ]]; then
-  export VPN_PASSWORD=;
-fi
-iprint "       VPN_PASSWORD: ${VPN_PASSWORD}"
+export VPN_PASSWORD=$(echo "${VPN_PASSWORD}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+iprint "       VPN_PASSWORD: '${VPN_PASSWORD}'"
 
-if [[ -z "${VPN_OPTIONS}" ]]; then
-  export VPN_OPTIONS=;
-fi
-iprint "        VPN_OPTIONS: ${VPN_OPTIONS}"
+export VPN_OPTIONS=$(echo "${VPN_OPTIONS}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+iprint "        VPN_OPTIONS: '${VPN_OPTIONS}'"
 
-if [[ -z "${ADDITIONAL_PORTS}" ]]; then
-  export ADDITIONAL_PORTS=;
-fi
-iprint "   ADDITIONAL_PORTS: ${ADDITIONAL_PORTS}"
+export ADDITIONAL_PORTS=$(echo "${ADDITIONAL_PORTS}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+iprint "   ADDITIONAL_PORTS: '${ADDITIONAL_PORTS}'"
 
-if [[ -z "${LEGACY_IPTABLES}" ]]; then
+export PUID=$(echo "${PUID}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${PUID}" || ! $PUID =~ ^[0-9]+$ ]]; then
+	export PUID=1000
+fi
+iprint "               PUID: $PUID"
+
+export PGID=$(echo "${PGID}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${PGID}" || ! $PGID =~ ^[0-9]+$ ]]; then
+	export PGID=1000
+fi
+iprint "               PGID: $PGID"
+
+export ENABLE_SSL=$(echo "${ENABLE_SSL}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${ENABLE_SSL}" || ! $ENABLE_SSL =~ ^[01]$ ]]; then
+  export ENABLE_SSL=0
+fi
+iprint "         ENABLE_SSL: ${ENABLE_SSL}"
+
+export LEGACY_IPTABLES=$(echo "${LEGACY_IPTABLES}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+if [[ -z "${LEGACY_IPTABLES}" || ! $LEGACY_IPTABLES =~ ^[01]$ ]]; then
   export LEGACY_IPTABLES=0
 fi
 iprint "    LEGACY_IPTABLES: ${LEGACY_IPTABLES}"
@@ -205,18 +247,17 @@ if is_true "$VPN_ENABLED"; then
 	fi
   iprint "           VPN_TYPE: '${VPN_TYPE}'"
 
-
 	# Create the directory to store OpenVPN or WireGuard config files
 	mkdir -p /config/${VPN_TYPE}
 	# Set permmissions and owner for files in /config/openvpn or /config/wireguard directory
-	set +e
 	chown -R "${PUID}":"${PGID}" "/config/${VPN_TYPE}" &> /dev/null
 	exit_code_chown=$?
 	chmod -R 775 "/config/${VPN_TYPE}" &> /dev/null
 	exit_code_chmod=$?
-	set -e
+
 	if (( ${exit_code_chown} != 0 || ${exit_code_chmod} != 0 )); then
-		wprint "Unable to chown and/or chmod /config/${VPN_TYPE}/"
+		eprint "Unable to chown and/or chmod /config/${VPN_TYPE}/. Exiting."
+    exiting 1
 	fi
 	if is_true "$VPN_CONF_SWITCH"; then
 		mkdir -p "/config/${VPN_TYPE}_confs"
@@ -227,8 +268,11 @@ if is_true "$VPN_ENABLED"; then
   # NOTE: MOVE_CONFIGS checks start here
 
 	if [[ "${VPN_TYPE}" == "openvpn" ]]; then
-  	# Wildcard search for openvpn config files, match on first result
-		export VPN_CONFIG=$(find /config/openvpn -maxdepth 1 -type f -name "*.ovpn" -print -quit)
+		export VPN_CONFIG=$(find /config/openvpn -maxdepth 1 -type f -name "default.ovpn" -print -quit)
+		if [ "$VPN_CONFIG" == "" ]; then
+  		# Wildcard search for *.conf and *.ovpn config files, match on first result
+			export VPN_CONFIG=$(find /config/openvpn -maxdepth 1 -type f \( -iname "*.conf" -o -iname "*.ovpn" \)  ! -iname "credentials.conf" ! -iname "*userpass*" -print -quit)
+		fi
 	else
     # For wireguard, specifically match "wg0.conf"
 		export VPN_CONFIG=$(find /config/wireguard -maxdepth 1 -type f -name "wg0.conf" -print -quit)
@@ -243,7 +287,11 @@ if is_true "$VPN_ENABLED"; then
 	# If VPN_CONFIG is still empty, check inside the container
   if is_true "$MOVE_CONFIGS" && [ -z "$VPN_CONFIG" ]; then
     if [[ "${VPN_TYPE}" == "openvpn" ]]; then
-      export VPN_CONFIG=$(find /vpn_files/openvpn -maxdepth 1 -type f -name "*.ovpn" -print -quit)
+				export VPN_CONFIG=$(find /vpn_files/openvpn -maxdepth 1 -type f -name "default.ovpn" -print -quit)
+			if [ "$VPN_CONFIG" == "" ]; then
+				# Wildcard search for *.conf and *.ovpn config files, match on first result
+				export VPN_CONFIG=$(find /vpn_files/openvpn -maxdepth 1 -type f \( -iname "*.conf" -o -iname "*.ovpn" \)  ! -iname "credentials.conf" ! -iname "*userpass*" -print -quit)
+			fi
     else
       export VPN_CONFIG=$(find /vpn_files/wireguard -maxdepth 1 -type f -name "wg0.conf" -print -quit)
     fi
@@ -373,7 +421,7 @@ if is_true "$VPN_ENABLED"; then
 		eprint "$ME: VPN_PORT not found in ${VPN_CONFIG}. Exiting."
 		exiting
 	fi
-  iprint "           VPN_PORT: '${VPN_PORT}'"
+  iprint "           VPN_PORT: ${VPN_PORT}"
 
 	if [[ "${VPN_TYPE}" == "openvpn" ]]; then
 		export VPN_PROTOCOL=$(cat "${VPN_CONFIG}" | grep -P -o -m 1 '(?<=^proto\s)[^\r\n]+' | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
@@ -393,7 +441,6 @@ if is_true "$VPN_ENABLED"; then
 	fi
   iprint "       VPN_PROTOCOL: '${VPN_PROTOCOL}'"
 
-  
 	if [[ "${VPN_TYPE}" == "openvpn" ]]; then
 		VPN_DEVICE_TYPE=$(cat "${VPN_CONFIG}" | grep -P -o -m 1 '(?<=^dev\s)[^\r\n\d]+' | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
 		if [[ -z "${VPN_DEVICE_TYPE}" ]]; then
@@ -422,28 +469,27 @@ if [[ -z "${NAME_SERVERS}" ]]; then
 # https://www.how-to-hide-ip.net/no-logs-dns-server-free-public/
 # FreeDNS: The servers are located in Austria, and you may use the following DNS IPs: 37.235.1.174 and 37.235.1.177.
 # DNS.WATCH: The DNS servers are: 84.200.69.80 (IPv6: 2001:1608:10:25::1c04:b12f) and 84.200.70.40 (IPv6: 2001:1608:10:25::9249:d69b), located in Germany.
-	export NAME_SERVERS="1.1.1.1,37.235.1.174,84.200.69.80,84.200.70.40,1.0.0.1,37.235.1.177"
+	export NAME_SERVERS="37.235.1.174,84.200.69.80,1.1.1.1,84.200.70.40,1.0.0.1,37.235.1.177"
 fi
 iprint "       NAME_SERVERS: '${NAME_SERVERS}'"
 
 # split comma seperated string into list from NAME_SERVERS env variable
 IFS=',' read -ra name_server_list <<< "${NAME_SERVERS}"
 # process name servers in the list
+# TODO: Check that at least 1 name server is added
+ns_check=false;
 for name_server_item in "${name_server_list[@]}"; do
-	name_server_item=$(echo "${name_server_item}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
-	iprint "Adding ${name_server_item} to resolv.conf"
-	echo "nameserver ${name_server_item}" >> /etc/resolv.conf
+	name_server_item=$(printf "%s" "${name_server_item}" | sed -e 's~^[ \t]*~~;s~[ \t]*$~~')
+	if [ "$name_server_item" != "" ]; then
+		ns_check=true;
+		iprint "Adding ${name_server_item} to resolv.conf"
+		echo "nameserver ${name_server_item}" >> /etc/resolv.conf
+	fi
 done
-
-if [[ -z "${PUID}" ]]; then
-	export PUID="1000"
-fi
-iprint "               PUID: $PUID"
-
-if [[ -z "${PGID}" ]]; then
-	export PGID="1000"
-fi
-iprint "               PGID: $PGID"
+# if ! ns_check; then
+# 	eprint "No nameservers detected, exiting";
+# 	exiting 1;
+# fi
 
 if is_true "$VPN_ENABLED"; then
   cd "$CONFIG_DIR/$VPN_TYPE"

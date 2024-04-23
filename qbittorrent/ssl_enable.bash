@@ -2,7 +2,7 @@
 
 # The mess down here checks if SSL is enabled.
 if is_true "$ENABLE_SSL"; then
-	iprint "ENABLE_SSL is set to '${ENABLE_SSL}'"
+	iprint "Configuring lines in qBittorrent.conf for SSL."
 	if [[ ${HOST_OS,,} == 'unraid' ]]; then
 		iprint "If you use Unraid, and get something like a 'ERR_EMPTY_RESPONSE' in your browser, add https:// to the front of the IP, and/or do this:"
 		iprint "Edit this Docker, change the slider in the top right to 'advanced view' and change http to https at the WebUI setting."
@@ -39,8 +39,4 @@ if is_true "$ENABLE_SSL"; then
 		wprint "$QCD/qBittorrent.conf doesn't have the WebUI\HTTPS\Enabled loaded. Added it to the config."
 		echo 'WebUI\HTTPS\Enabled=true' >> "$QCD/qBittorrent.conf"
 	fi
-else
-	wprint "ENABLE_SSL is set to '${ENABLE_SSL}', SSL is not enabled. This could cause issues with logging if other apps use the same Cookie name (SID)."
-	wprint "Removing the SSL configuration from the config file..."
-	sed -i '/^WebUI\\HTTPS*/d' "$QCD/qBittorrent.conf"
 fi
