@@ -50,8 +50,7 @@ NOTE: I don't use ipv6 or SSL so I haven't tried either with this container, not
 
 <h2 id="run_from_docker_registry">Run container from Docker registry</h2>
 
-The container is available from the Docker registry and this is the simplest way to get it  
-To run the container use this command, with additional parameters, please refer to the Variables, Volumes, and Ports section:
+The container is available from the Docker registry. To run the container use the below command. For additional parameters, please [read below](#variables_volumes_ports).
 
 ```
 $ docker run  -d \
