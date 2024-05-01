@@ -1,0 +1,6 @@
+This file will be deleted after first run.
+
+This file exists for these reasons:
+
+- "settling in" qbittorrent-nox
+    When using Wireguard on first run, sometimes qbittorrent-nox simply won't download anything until it has been restarted once. I haven't had this problem with OpenVPN so hopefully it's just my VPN provider.
