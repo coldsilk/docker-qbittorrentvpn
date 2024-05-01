@@ -1,10 +1,6 @@
-# Latest release Qbittorrent, OpenVPN and WireGuard
-
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 WORKDIR /opt
-
-RUN usermod -u 99 nobody
 
 RUN `# Install prerequisites` \
     apt update \
@@ -109,13 +105,17 @@ RUN `# Compile and install qBittorrent` \
 
 # Install WireGuard and some other dependencies some of the scripts in the container rely on.
 RUN `# Install WireGuard, OpenVPN and other tools` \
-    echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
-    && printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable \
-    && echo "deb http://deb.debian.org/debian/ bullseye non-free" > /etc/apt/sources.list.d/non-free-unrar.list \
+    && echo "deb http://deb.debian.org/debian/ bookworm non-free" > /etc/apt/sources.list \
     && printf 'Package: *\nPin: release a=non-free\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-non-free \
     && apt update \
     && apt install -y --no-install-recommends \
+    iproute2 \
     dos2unix \
+    python3 \
+    tzdata \
+    wireguard-tools \
+    openresolv \
+    openvpn \
     inetutils-ping \
     ipcalc \
     iptables \
@@ -123,29 +123,39 @@ RUN `# Install WireGuard, OpenVPN and other tools` \
     libqt5network5 \
     libqt5xml5 \
     libqt5sql5 \
-    libssl1.1 \
+    libssl3 \
     moreutils \
     net-tools \
-    openresolv \
-    openvpn \
     procps \
-    wireguard-tools \
-    wget\
-    netcat \
-    tzdata \
+    wget \
+    netcat-openbsd \
     nano \
-    python3 \
     p7zip-full \
     zip \
     unrar \
+    xz-utils \
+    gzip \
     && apt-get clean \
     && apt --purge autoremove -y
+
+RUN `# Install newer version of ipcalc` \
+    apt install -y --no-install-recommends \
+    build-essential \
+    && curl -o /opt/ipcalc-1.0.3.tar.gz -L https://gitlab.com/ipcalc/ipcalc/-/archive/1.0.3/ipcalc-1.0.3.tar.gz \
+    && tar -xzf /opt/ipcalc-1.0.3.tar.gz -C /opt \
+    && cd /opt/ipcalc-1.0.3 \
+    && make USE_GEOIP=no USE_MAXMIND=no \
+    && cp -f ipcalc /usr/local/bin/ipcalc \
+    && rm -rf /opt/* \
+    && apt purge -y \
+    build-essential
 
 # Clean up
 RUN `# Clean up` \
     apt-get clean \
     && apt --purge autoremove -y \
     && rm -rf \
+    /usr/local/bin/ninja \
     /var/lib/apt/lists/* \
     /tmp/* \
     /var/tmp/*
@@ -154,35 +164,36 @@ RUN `# Clean up` \
 RUN `# Patch wg-quick` \
     sed -i /net\.ipv4\.conf\.all\.src_valid_mark/d `which wg-quick`
 
+# Create volumes
 VOLUME /config /downloads
 
 # Make directories
 RUN `# Make directories` \
     mkdir -p \
-    /downloads \
     /config/qBittorrent \
-    # /etc/openvpn \
-    /etc/qbittorrent \
+    /downloads \
     /vpn_files/openvpn/ \
-    /vpn_files/wireguard/ \
-    /scripts
+    /vpn_files/wireguard/
 
 ADD qbittorrent/ /etc/qbittorrent/
 ADD scripts/ /scripts/
 
-# files
+# Add files
 ADD README.md /scripts/
 ADD speedtest /usr/bin
 ADD bashrc /root/.bashrc
+ADD . /_app_src
 
-# permisssions
+# Permisssions
 RUN `# Set executable permissions` \
     chmod +x \
     /etc/qbittorrent/*.bash \
     /scripts/*.bash \
     /usr/bin/speedtest
 
+# Suggested default Web UI port (EXPOSE doesn't actually expose a port)
 EXPOSE 8080
+# Suggested default torrenting port
 EXPOSE 8999
 EXPOSE 8999/udp
 
@@ -190,4 +201,3 @@ WORKDIR /root
 
 ENTRYPOINT ["/bin/bash", "/etc/qbittorrent/start.bash"]
 
-# Need to update base image and figure out why user "nobody" was added at start
