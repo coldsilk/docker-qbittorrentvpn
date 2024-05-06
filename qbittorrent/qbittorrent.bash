@@ -5,7 +5,7 @@ source "/etc/qbittorrent/qbt_utils.bash"
 ME="$(basename "$0")"
 
 exiting() {
-  ps -o pid= -p $qbittorrentpid > /dev/null 2>&1 && kill -SIGTERM
+  ps -o pid= -p $qbittorrentpid > /dev/null 2>&1 && kill -SIGTERM $$
   if [[ $(date +%s) -lt $(( $START_TIME+$MIN_UPTIME )) ]]; then
   	iprint "Exiting in $(( $MIN_UPTIME-($(date +%s)-$START_TIME) )) seconds."
 	else
